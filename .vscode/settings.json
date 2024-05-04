@@ -1,0 +1,11 @@
+{
+	"material-icon-theme.files.associations": {
+		"*.dbml": "database"
+	},
+	"cSpell.enableFiletypes": [
+		"dbml"
+	],
+	"cSpell.words": [
+		"econominhas"
+	]
+}

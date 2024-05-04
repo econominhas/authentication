@@ -1,0 +1,98 @@
+Project authentication {
+  database_type: 'PostgreSQL'
+
+  Note: 'Authentication database'
+}
+
+//// ------------------------------------------------------
+////
+//// Tables
+////
+//// ------------------------------------------------------
+
+Table auth.accounts as a {
+	id UUID [pk]
+  created_at DateTime [default: `now()`, not null]
+
+  Note: 'Contains users sign in information'
+}
+
+Table auth.refresh_tokens as rt {
+  account_id String [not null]
+  refresh_token String [unique, not null]
+  created_at DateTime [default: `now()`, not null]
+
+  indexes {
+    (accountId, refreshToken) [pk]
+  }
+
+  Note: 'Contains codes to be used to refresh the access token'
+}
+
+
+Table auth.magic_link_codes as mlc {
+  account_id String [pk]
+  code String [not null]
+  is_first_access Boolean [not null]
+  created_at DateTime [default: `now()`, not null]
+
+  Note: 'Contains codes to be used by the users to login'
+}
+
+Table auth.sign_in_providers as sip {
+  account_id String [not null]
+  provider SignInProviderEnum [not null]
+  provider_id String [not null]
+  access_token String [not null]
+  refresh_token String
+  expires_at DateTime [not null]
+  created_at DateTime [default: `now()`, not null]
+
+  indexes {
+    (accountId, provider, providerId) [pk]
+  }
+
+  Note: 'Contains user\'s link to sign in providers, like google, discord, etc'
+}
+
+Table auth.contacts as c {
+  account_id String [not null]
+  contact String [not null]
+  type ContactTypeEnum [not null]
+  created_at DateTime [default: `now()`, not null]
+  verified_at DateTime
+
+  indexes {
+    (accountId, contact, type) [pk]
+    (contact, type) [unique]
+  }
+
+  Note: 'Contains user\'s email, phone, etc'
+}
+
+//// ------------------------------------------------------
+////
+//// Enums
+////
+//// ------------------------------------------------------
+
+Enum SignInProviderEnum {
+  FACEBOOK
+  GOOGLE
+}
+
+Enum ContactTypeEnum {
+  EMAIL
+  PHONE
+}
+
+//// ------------------------------------------------------
+////
+//// Relationships
+////
+//// ------------------------------------------------------
+
+Ref: rt.account_id > a.id [delete: Cascade]
+Ref: mlc.account_id > a.id [delete: Cascade]
+Ref: sip.account_id > a.id [delete: Cascade]
+Ref: c.account_id > a.id [delete: Cascade]
