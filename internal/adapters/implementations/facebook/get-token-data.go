@@ -60,7 +60,6 @@ func (adp *FacebookAdapter) getTokenData(accessToken string) (*getTokenDataOutpu
 	defer appTokenResp.Body.Close()
 
 	appToken := getAppTokenApiOutput{}
-
 	err = json.NewDecoder(appTokenResp.Body).Decode(&appToken)
 	if err != nil {
 		return nil, errors.New("fail to decode request body")
@@ -87,7 +86,6 @@ func (adp *FacebookAdapter) getTokenData(accessToken string) (*getTokenDataOutpu
 	defer tokenDebugRes.Body.Close()
 
 	tokenDebug := tokenDebugApiOutput{}
-
 	err = json.NewDecoder(tokenDebugRes.Body).Decode(&tokenDebug)
 	if err != nil {
 		return nil, errors.New("fail to decode request body")

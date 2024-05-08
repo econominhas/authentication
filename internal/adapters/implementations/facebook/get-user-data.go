@@ -33,19 +33,16 @@ func (adp *FacebookAdapter) GetUserData(accessToken string) (*adapters.GetAuthen
 	}
 	defer res.Body.Close()
 
-	userData := getUserDataApiOutput{}
-
-	err = json.NewDecoder(res.Body).Decode(&userData)
+	userDataRes := getUserDataApiOutput{}
+	err = json.NewDecoder(res.Body).Decode(&userDataRes)
 	if err != nil {
 		return nil, errors.New("fail to decode request body")
 	}
 
-	output := adapters.GetAuthenticatedUserDataOutput{
-		Id:              userData.Id,
-		Name:            userData.Name,
-		Email:           userData.Email,
+	return &adapters.GetAuthenticatedUserDataOutput{
+		Id:              userDataRes.Id,
+		Name:            userDataRes.Name,
+		Email:           userDataRes.Email,
 		IsEmailVerified: true,
-	}
-
-	return &output, nil
+	}, nil
 }

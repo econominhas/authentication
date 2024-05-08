@@ -35,18 +35,15 @@ func (adp *GoogleAdapter) GetUserData(accessToken string) (*adapters.GetAuthenti
 	defer userDataRes.Body.Close()
 
 	userData := getUserDataApiOutput{}
-
 	err = json.NewDecoder(userDataRes.Body).Decode(&userData)
 	if err != nil {
 		return nil, errors.New("fail to decode request body")
 	}
 
-	output := adapters.GetAuthenticatedUserDataOutput{
+	return &adapters.GetAuthenticatedUserDataOutput{
 		Id:              userData.Sub,
 		Name:            userData.GivenName,
 		Email:           userData.Email,
 		IsEmailVerified: userData.EmailVerified,
-	}
-
-	return &output, nil
+	}, nil
 }

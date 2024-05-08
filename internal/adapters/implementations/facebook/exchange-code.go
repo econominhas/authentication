@@ -48,7 +48,6 @@ func (adp *FacebookAdapter) ExchangeCode(i *adapters.ExchangeCodeInput) (*adapte
 	defer res.Body.Close()
 
 	exchangeCode := exchangeCodeApiOutput{}
-
 	err = json.NewDecoder(res.Body).Decode(&exchangeCode)
 	if err != nil {
 		return nil, errors.New("fail to decode request body")
@@ -67,11 +66,9 @@ func (adp *FacebookAdapter) ExchangeCode(i *adapters.ExchangeCodeInput) (*adapte
 		return nil, errors.New("fail to get app token")
 	}
 
-	output := adapters.ExchangeCodeOutput{
+	return &adapters.ExchangeCodeOutput{
 		AccessToken: exchangeCode.AccessToken,
 		Scopes:      tokenDebug.Scopes,
 		ExpiresAt:   expDate,
-	}
-
-	return &output, nil
+	}, nil
 }

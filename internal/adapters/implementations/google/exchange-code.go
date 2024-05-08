@@ -49,9 +49,8 @@ func (adp *GoogleAdapter) ExchangeCode(i *adapters.ExchangeCodeInput) (*adapters
 	}
 	defer codeRes.Body.Close()
 
-	code := exchangeTokenApiOutput{}
-
-	err = json.NewDecoder(codeRes.Body).Decode(&code)
+	exchangeCode := exchangeTokenApiOutput{}
+	err = json.NewDecoder(codeRes.Body).Decode(&exchangeCode)
 	if err != nil {
 		return nil, errors.New("fail to decode request body")
 	}
@@ -60,14 +59,14 @@ func (adp *GoogleAdapter) ExchangeCode(i *adapters.ExchangeCodeInput) (*adapters
 		Now().
 		Add(
 			time.Duration(
-				code.ExpiresIn,
+				exchangeCode.ExpiresIn,
 			),
 		)
 
 	output := adapters.ExchangeCodeOutput{
-		AccessToken:  code.AccessToken,
-		RefreshToken: code.RefreshToken,
-		Scopes:       strings.Split(code.Scope, " "),
+		AccessToken:  exchangeCode.AccessToken,
+		RefreshToken: exchangeCode.RefreshToken,
+		Scopes:       strings.Split(exchangeCode.Scope, " "),
 		ExpiresAt:    expDate,
 	}
 

@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 // ----------------------------
 //
@@ -8,20 +11,20 @@ import "time"
 //
 // ----------------------------
 
+type CreateAccountSignInProvider struct {
+	Id           string
+	Type         string
+	AccessToken  string
+	RefreshToken *string
+	ExpiresAt    time.Time
+}
+
 type CreateAccountInput struct {
-	Email  string
-	Phone  string
-	Google struct {
-		Id           string
-		AccessToken  string
-		RefreshToken string
-		ExpiresAt    time.Time
-	}
-	Facebook struct {
-		Id          string
-		AccessToken string
-		ExpiresAt   time.Time
-	}
+	Db sql.Tx
+
+	Email           string
+	Phone           string
+	SignInProviders []CreateAccountSignInProvider
 }
 
 type CreateAccountOutput struct {
@@ -29,6 +32,8 @@ type CreateAccountOutput struct {
 }
 
 type GetManyAccountsByProviderInput struct {
+	Db sql.Tx
+
 	ProviderId   string
 	ProviderType string
 	Email        string
@@ -44,7 +49,7 @@ type GetManyAccountsByProviderOutput struct {
 type AccountRepository interface {
 	Create(i *CreateAccountInput) (*CreateAccountOutput, error)
 
-	GetManyByProvider(i *GetManyAccountsByProviderInput) (*GetManyAccountsByProviderOutput, error)
+	GetManyByProvider(i *GetManyAccountsByProviderInput) ([]GetManyAccountsByProviderOutput, error)
 }
 
 // ----------------------------
