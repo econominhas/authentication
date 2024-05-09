@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 type MagicLinkCodeEntity struct {
 	AccountId     string
@@ -16,11 +19,15 @@ type MagicLinkCodeEntity struct {
 // ----------------------------
 
 type UpsertInput struct {
+	Db sql.Tx
+
 	AccountId     string
 	IsFirstAccess bool
 }
 
 type GetInput struct {
+	Db sql.Tx
+
 	AccountId string
 	Code      string
 }
