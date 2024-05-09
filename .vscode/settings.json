@@ -1,4 +1,7 @@
 {
+	"[go]": {
+		"editor.defaultFormatter": "golang.go"
+	},
 	"material-icon-theme.files.associations": {
 		"*.dbml": "database"
 	},
