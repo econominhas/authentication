@@ -1,5 +1,5 @@
 package adapters
 
 type SecretAdapter interface {
-	GenSecret(length int) string
+	GenSecret(length int) (string, error)
 }
