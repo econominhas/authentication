@@ -33,5 +33,21 @@ func (rep *MagicLinkCodeRepository) Upsert(i *models.UpsertInput) (*models.Magic
 		Code:          i.AccountId,
 		IsFirstAccess: i.IsFirstAccess,
 		CreatedAt:     time.Now(),
+	}, nil
+}
+
+func Get(i *models.GetInput) (*models.MagicLinkCodeEntity, error) {
+	var data models.MagicLinkCodeEntity
+
+	if err := i.Db.QueryRow(
+		`
+		SELECT * FROM auth.magic_link_codes WHERE account_id = $1, code = $2
+	`,
+		i.AccountId,
+		i.Code,
+	).Scan(data); err != nil {
+		return nil, errors.New("fail to get magic link code")
 	}
+
+	return &data, nil
 }
