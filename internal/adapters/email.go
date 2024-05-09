@@ -1,7 +1,8 @@
 package adapters
 
 type SendVerificationCodeEmailInput struct {
-	To string
+	To   string
+	Code string
 }
 
 type EmailAdapter interface {
