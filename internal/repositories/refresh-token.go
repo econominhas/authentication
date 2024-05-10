@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"time"
 
 	"github.com/econominhas/authentication/internal/adapters"
 	"github.com/econominhas/authentication/internal/models"
@@ -31,5 +32,29 @@ func (rep *RefreshTokenRepository) Create(i *models.CreateRefreshTokenInput) (*m
 
 	return &models.CreateRefreshTokenOutput{
 		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (rep *RefreshTokenRepository) Get(i *models.GetRefreshTokenInput) (*models.GetRefreshTokenOutput, error) {
+	row := i.Db.QueryRow(
+		"SELECT * FROM auth.refresh_tokens WHERE refresh_token = $1",
+		i.RefreshToken,
+	)
+
+	var accountId string
+	var createdAt time.Time
+
+	err := row.Scan(
+		&accountId,
+		&createdAt,
+	)
+
+	if err != nil {
+		return nil, errors.New("refresh token not found")
+	}
+
+	return &models.GetRefreshTokenOutput{
+		AccountId: accountId,
+		CreatedAt: createdAt,
 	}, nil
 }
