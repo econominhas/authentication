@@ -12,7 +12,7 @@ type MagicLinkCodeRepository struct {
 	SecretAdapter adapters.SecretAdapter
 }
 
-func (rep *MagicLinkCodeRepository) Upsert(i *models.UpsertInput) (*models.MagicLinkCodeEntity, error) {
+func (rep *MagicLinkCodeRepository) Upsert(i *models.UpsertRefreshTokenInput) (*models.MagicLinkCodeEntity, error) {
 	_, err := i.Db.Exec(
 		`
 		INSERT INTO auth.magic_link_codes (account_id, code, is_first_access)
