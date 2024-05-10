@@ -42,7 +42,7 @@ func (rep *MagicLinkCodeRepository) Upsert(i *models.UpsertMagicLinkRefreshToken
 	}, nil
 }
 
-func Get(i *models.GetInput) (*models.MagicLinkCodeEntity, error) {
+func (rep *MagicLinkCodeRepository) Get(i *models.GetRefreshTokenInput) (*models.MagicLinkCodeEntity, error) {
 	var data models.MagicLinkCodeEntity
 
 	if err := i.Db.QueryRow(
