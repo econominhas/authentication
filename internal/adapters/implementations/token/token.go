@@ -2,21 +2,12 @@ package ulid
 
 import (
 	"errors"
-	"math/rand"
 	"os"
 	"time"
-	"unsafe"
 
 	"aidanwoods.dev/go-paseto"
 	"github.com/econominhas/authentication/internal/adapters"
-)
-
-const (
-	tokenLength   = 64
-	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	letterIdxBits = 6                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+	"github.com/econominhas/authentication/internal/utils"
 )
 
 type TokenAdapter struct{}
@@ -46,23 +37,7 @@ func (adp *TokenAdapter) GenAccess(i *adapters.GenAccessInput) (*adapters.GenAcc
 }
 
 func (adp *TokenAdapter) GenRefresh(i *adapters.GenRefreshInput) (string, error) {
-	var src = rand.NewSource(time.Now().UnixNano())
-
-	b := make([]byte, tokenLength)
-
-	for i, cache, remain := tokenLength-1, src.Int63(), letterIdxMax; i >= 0; {
-		if remain == 0 {
-			cache, remain = src.Int63(), letterIdxMax
-		}
-		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
-			b[i] = letterBytes[idx]
-			i--
-		}
-		cache >>= letterIdxBits
-		remain--
-	}
-
-	return *(*string)(unsafe.Pointer(&b)), nil
+	return utils.GenRandomString(64), nil
 }
 
 func NewTokenAdapter() *TokenAdapter {
