@@ -38,20 +38,20 @@ func (serv *AccountService) genAuthOutput(i *genAuthOutputInput) (*models.AuthOu
 
 	if i.refresh {
 		wg.Add(1)
+		defer wg.Done()
 		go func() {
 			refreshToken, err = serv.RefreshTokenRepository.Create(&models.CreateRefreshTokenInput{
 				AccountId: i.accountId,
 			})
-			wg.Done()
 		}()
 	}
 
 	wg.Add(1)
+	defer wg.Done()
 	go func() {
 		accessToken, err = serv.TokenAdapter.GenAccess(&adapters.GenAccessInput{
 			AccountId: i.accountId,
 		})
-		wg.Done()
 	}()
 
 	wg.Wait()
