@@ -25,7 +25,7 @@ func (rep *MagicLinkCodeRepository) Upsert(i *models.UpsertRefreshTokenInput) (*
 	)
 
 	if err != nil {
-		return nil, errors.New("fail to insert or create magic link code")
+		return nil, errors.New("fail to upsert magic link code")
 	}
 
 	return &models.MagicLinkCodeEntity{
