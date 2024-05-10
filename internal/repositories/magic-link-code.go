@@ -41,7 +41,7 @@ func Get(i *models.GetInput) (*models.MagicLinkCodeEntity, error) {
 
 	if err := i.Db.QueryRow(
 		`
-		SELECT * FROM auth.magic_link_codes WHERE account_id = $1, code = $2
+		SELECT * FROM auth.magic_link_codes WHERE account_id = $1 AND code = $2
 	`,
 		i.AccountId,
 		i.Code,
