@@ -1,6 +1,9 @@
 package models
 
-import "database/sql"
+import (
+	"database/sql"
+	"time"
+)
 
 // ----------------------------
 //
@@ -18,6 +21,18 @@ type CreateRefreshTokenOutput struct {
 	RefreshToken string
 }
 
+type GetRefreshTokenInput struct {
+	Db sql.Tx
+
+	RefreshToken string
+}
+
+type GetRefreshTokenOutput struct {
+	AccountId string
+	CreatedAt time.Time
+}
+
 type RefreshTokenRepository interface {
 	Create(i *CreateRefreshTokenInput) (*CreateRefreshTokenOutput, error)
+	Get(i *GetRefreshTokenInput) (*GetRefreshTokenOutput, error)
 }

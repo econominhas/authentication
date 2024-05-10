@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"time"
 
 	"github.com/econominhas/authentication/internal/adapters"
 	"github.com/econominhas/authentication/internal/models"
@@ -166,4 +167,47 @@ func (serv *AccountService) CreateFromFacebookProvider(i *models.CreateAccountFr
 		code:            i.Code,
 		originUrl:       i.OriginUrl,
 	})
+}
+
+/**
+*
+* REFRESH TOKEN
+*
+ */
+
+type refreshTokenInput struct {
+	refreshToken string
+}
+
+type refreshTokenOutput struct {
+	accessToken string
+	expiresAt   time.Time
+}
+
+func (serv *AccountService) RefreshToken(i *refreshTokenInput) (*refreshTokenOutput, error) {
+	getInput := &models.GetRefreshTokenInput{
+		RefreshToken: i.refreshToken,
+	}
+
+	refreshTokenRepositoryData, err := serv.RefreshTokenRepository.Get(getInput)
+
+	if err != nil || refreshTokenRepositoryData == nil {
+		return nil, errors.New("refresh token not found")
+	}
+
+	genAuthInput := &genAuthOutputInput{
+		isFirstAccess: false,
+		refresh:       false,
+		accountId:     refreshTokenRepositoryData.AccountId,
+	}
+	genAuthData, err := serv.genAuthOutput(genAuthInput)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &refreshTokenOutput{
+		accessToken: genAuthData.AccessToken,
+		expiresAt:   genAuthData.ExpiresAt,
+	}, nil
 }
