@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/econominhas/authentication/internal/adapters"
@@ -31,18 +32,33 @@ type createFromExternalProviderInput struct {
 }
 
 func (serv *AccountService) genAuthOutput(i *genAuthOutputInput) (*models.AuthOutput, error) {
-	refreshToken, err := serv.RefreshTokenRepository.Create(&models.CreateRefreshTokenInput{
-		AccountId: i.accountId,
-	})
-	if err != nil {
-		return nil, errors.New("fail to generate access token")
+	var wg sync.WaitGroup
+	var refreshToken *models.CreateRefreshTokenOutput
+	var accessToken *adapters.GenAccessOutput
+	var err error
+
+	if i.refresh {
+		wg.Add(1)
+		defer wg.Done()
+		go func() {
+			refreshToken, err = serv.RefreshTokenRepository.Create(&models.CreateRefreshTokenInput{
+				AccountId: i.accountId,
+			})
+		}()
 	}
 
-	accessToken, err := serv.TokenAdapter.GenAccess(&adapters.GenAccessInput{
-		AccountId: i.accountId,
-	})
+	wg.Add(1)
+	defer wg.Done()
+	go func() {
+		accessToken, err = serv.TokenAdapter.GenAccess(&adapters.GenAccessInput{
+			AccountId: i.accountId,
+		})
+	}()
+
+	wg.Wait()
+
 	if err != nil {
-		return nil, errors.New("fail to generate access token")
+		return nil, errors.New("fail to generate auth output")
 	}
 
 	return &models.AuthOutput{
