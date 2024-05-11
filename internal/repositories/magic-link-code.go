@@ -13,14 +13,20 @@ type MagicLinkCodeRepository struct {
 }
 
 func (rep *MagicLinkCodeRepository) Upsert(i *models.UpsertInput) (*models.MagicLinkCodeEntity, error) {
-	_, err := i.Db.Exec(
+	secret, err := rep.SecretAdapter.GenSecret(16)
+
+	if err != nil {
+		return nil, errors.New("fail to generate secret")
+	}
+
+	_, err = i.Db.Exec(
 		`
 		INSERT INTO auth.magic_link_codes (account_id, code, is_first_access)
         VALUES ($1, $2, $3)
         ON CONFLICT (account_id) DO UPDATE SET code = $2, is_first_access = $3
     `,
 		i.AccountId,
-		rep.SecretAdapter.GenSecret(16),
+		secret,
 		i.IsFirstAccess,
 	)
 
