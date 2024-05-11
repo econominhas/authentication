@@ -25,7 +25,7 @@ type UpsertMagicLinkRefreshTokenInput struct {
 	IsFirstAccess bool
 }
 
-type GetInput struct {
+type GetMagicLinkRefreshTokenInput struct {
 	Db sql.Tx
 
 	AccountId string
@@ -34,5 +34,5 @@ type GetInput struct {
 
 type MagicLinkCodeRepository interface {
 	Upsert(i *UpsertMagicLinkRefreshTokenInput) (*MagicLinkCodeEntity, error)
-	Get(i *GetInput) (*MagicLinkCodeEntity, error)
+	Get(i *GetMagicLinkRefreshTokenInput) (*MagicLinkCodeEntity, error)
 }
