@@ -18,7 +18,7 @@ type MagicLinkCodeEntity struct {
 //
 // ----------------------------
 
-type UpsertInput struct {
+type UpsertMagicLinkRefreshTokenInput struct {
 	Db sql.Tx
 
 	AccountId     string
@@ -33,6 +33,6 @@ type GetInput struct {
 }
 
 type MagicLinkCodeRepository interface {
-	Upsert(i *UpsertInput) (*MagicLinkCodeEntity, error)
+	Upsert(i *UpsertMagicLinkRefreshTokenInput) (*MagicLinkCodeEntity, error)
 	Get(i *GetInput) (*MagicLinkCodeEntity, error)
 }

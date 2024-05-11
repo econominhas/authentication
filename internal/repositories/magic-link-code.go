@@ -12,7 +12,7 @@ type MagicLinkCodeRepository struct {
 	SecretAdapter adapters.SecretAdapter
 }
 
-func (rep *MagicLinkCodeRepository) Upsert(i *models.UpsertInput) (*models.MagicLinkCodeEntity, error) {
+func (rep *MagicLinkCodeRepository) Upsert(i *models.UpsertMagicLinkRefreshTokenInput) (*models.MagicLinkCodeEntity, error) {
 	secret, err := rep.SecretAdapter.GenSecret(16)
 
 	if err != nil {
