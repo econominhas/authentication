@@ -289,3 +289,29 @@ func (serv *AccountService) ExchangeCode(i *models.ExchangeAccountCodeInput) (*m
 		refresh:       true,
 	})
 }
+
+func (serv *AccountService) RefreshToken(i *models.RefreshAccountTokenInput) (*models.RefreshAccountTokenOutput, error) {
+	refreshToken, err := serv.RefreshTokenRepository.Get(&models.GetRefreshTokenInput{
+		AccountId:    i.AccountId,
+		RefreshToken: i.RefreshToken,
+	})
+	if err != nil {
+		return nil, errors.New("fail to get account")
+	}
+
+	if !refreshToken {
+		return nil, errors.New("refresh token doesn't exist")
+	}
+
+	accessToken, err := serv.TokenAdapter.GenAccess(&adapters.GenAccessInput{
+		AccountId: i.AccountId,
+	})
+	if err != nil {
+		return nil, errors.New("fail to generate access token")
+	}
+
+	return &models.RefreshAccountTokenOutput{
+		AccessToken: accessToken.AccessToken,
+		ExpiresAt:   accessToken.ExpiresAt,
+	}, nil
+}

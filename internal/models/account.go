@@ -114,7 +114,9 @@ type ExchangeAccountCodeInput struct {
 	AccountId string
 	Code      string
 }
+
 type RefreshAccountTokenInput struct {
+	AccountId    string
 	RefreshToken string
 }
 
@@ -134,5 +136,5 @@ type AccountService interface {
 
 	ExchangeCode(i *ExchangeAccountCodeInput) (*AuthOutput, error)
 
-	RefreshToken(i *ExchangeAccountCodeInput) (*RefreshAccountTokenOutput, error)
+	RefreshToken(i *RefreshAccountTokenInput) (*RefreshAccountTokenOutput, error)
 }
