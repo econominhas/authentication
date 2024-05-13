@@ -35,3 +35,28 @@ func (rep *RefreshTokenRepository) Create(i *models.CreateRefreshTokenInput) (*m
 		RefreshToken: refreshToken,
 	}, nil
 }
+
+func (rep *RefreshTokenRepository) Get(i *models.GetRefreshTokenInput) (bool, error) {
+	var data models.RefreshTokenEntity
+
+	if err := i.Db.QueryRow(
+		`
+		SELECT *
+		FROM auth.refresh_tokens rf
+		WHERE
+			rf.account_id = $1,
+			rf.refresh_token = $2
+		LIMIT 1
+	`,
+		i.AccountId,
+		i.RefreshToken,
+	).Scan(&data); err != nil {
+		return false, errors.New("fail to get refresh token")
+	}
+
+	if data.AccountId == "" {
+		return false, nil
+	}
+
+	return true, nil
+}

@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+// ----------------------------
+//
+//      Entities
+//
+// ----------------------------
+
 type MagicLinkCodeEntity struct {
 	AccountId     string    `db:"account_id"`
 	Code          string    `db:"code"`
