@@ -63,7 +63,7 @@ func (rep *MagicLinkCodeRepository) Get(i *models.GetMagicLinkRefreshTokenInput)
 	`,
 		i.AccountId,
 		i.Code,
-	).Scan(data); err != nil {
+	).Scan(&data); err != nil {
 		return nil, errors.New("fail to get magic link code")
 	}
 
