@@ -13,8 +13,12 @@ type AccountRepository struct {
 }
 
 func (rep *AccountRepository) Create(i *models.CreateAccountInput) (*models.CreateAccountOutput, error) {
-	if i.Email == "" && i.Phone == "" {
+	if i.Email == "" && i.Phone.Number == "" {
 		return nil, errors.New("email or phone is required")
+	}
+	if (i.Phone.CountryCode != "" && i.Phone.Number == "") ||
+		(i.Phone.CountryCode == "" && i.Phone.Number != "") {
+		return nil, errors.New("both phone number and country code are required")
 	}
 
 	accountId, err := rep.IdAdapter.GenId()
@@ -32,10 +36,9 @@ func (rep *AccountRepository) Create(i *models.CreateAccountInput) (*models.Crea
 
 	if i.Email != "" {
 		_, err = i.Db.Exec(
-			"INSERT INTO auth.contacts (account_id, contact, `type`, verified_at) VALUES ($1, $2, $3, $4, $5)",
+			"INSERT INTO auth.email_addresses (account_id, email_address, verified_at) VALUES ($1, $2, $3)",
 			accountId,
 			i.Email,
-			"EMAIL",
 			time.Now(),
 		)
 		if err != nil {
@@ -43,12 +46,12 @@ func (rep *AccountRepository) Create(i *models.CreateAccountInput) (*models.Crea
 		}
 	}
 
-	if i.Phone != "" {
+	if i.Phone.Number != "" {
 		_, err = i.Db.Exec(
-			"INSERT INTO auth.contacts (account_id, contact, `type`, verified_at) VALUES ($1, $2, $3, $4, $5)",
+			"INSERT INTO auth.phone_numbers (account_id, country_code, phone_number, verified_at) VALUES ($1, $2, $3, $4)",
 			accountId,
-			i.Phone,
-			"PHONE",
+			i.Phone.CountryCode,
+			i.Phone.Number,
 			time.Now(),
 		)
 		if err != nil {
@@ -82,20 +85,19 @@ func (rep *AccountRepository) GetManyByProvider(i *models.GetManyAccountsByProvi
 	rows, err := i.Db.Query(
 		`
 		SELECT
-			COALESCE(sp.account_id, c.account_id) as "AccountId"
+			COALESCE(sp.account_id, ea.account_id) as "AccountId"
 			sp.provider_id as "ProviderId"
 			sp.provider as "ProviderType"
-			c.contact as "Email"
+			ea.email_address as "Email"
 		FROM auth.sign_in_providers sp
-			INNER JOIN auth.contacts c ON c.account_id = sp.account_id
+			INNER JOIN auth.email_addresses ea ON ea.account_id = sp.account_id
 		WHERE
 			(sp.provider = $1 AND sp.provider_id = $2)
 			OR
-			(c.type = $3 AND c.contact = $4)
+			ea.email_address = $3
 		`,
 		i.ProviderType,
 		i.ProviderId,
-		"EMAIL",
 		i.Email,
 	)
 	if err != nil {
@@ -119,4 +121,25 @@ func (rep *AccountRepository) GetManyByProvider(i *models.GetManyAccountsByProvi
 	}
 
 	return output, nil
+}
+
+func (rep *AccountRepository) GetByEmail(i *models.GetAccountByEmailInput) (*models.GetAccountByEmailOutput, error) {
+	var data models.GetAccountByEmailOutput
+
+	if err := i.Db.QueryRow(
+		`
+		SELECT
+			ea.account_id as "AccountId"
+			ea.email_address as "Email"
+		FROM auth.email_addresses ea
+		WHERE
+			ea.email_address = $1
+		LIMIT 1
+		`,
+		i.Email,
+	).Scan(data); err != nil {
+		return nil, errors.New("fail to create account")
+	}
+
+	return &data, nil
 }

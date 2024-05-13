@@ -7,7 +7,6 @@ import (
 
 	"aidanwoods.dev/go-paseto"
 	"github.com/econominhas/authentication/internal/adapters"
-	"github.com/econominhas/authentication/internal/utils"
 )
 
 type TokenAdapter struct{}
@@ -34,10 +33,6 @@ func (adp *TokenAdapter) GenAccess(i *adapters.GenAccessInput) (*adapters.GenAcc
 		AccessToken: accessToken,
 		ExpiresAt:   expiresAt,
 	}, nil
-}
-
-func (adp *TokenAdapter) GenRefresh(i *adapters.GenRefreshInput) (string, error) {
-	return utils.GenRandomString(64), nil
 }
 
 func NewTokenAdapter() *TokenAdapter {

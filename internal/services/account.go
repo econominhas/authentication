@@ -12,9 +12,11 @@ type AccountService struct {
 	GoogleAdapter   adapters.SignInProviderAdapter
 	FacebookAdapter adapters.SignInProviderAdapter
 	TokenAdapter    adapters.TokenAdapter
+	EmailAdapter    adapters.EmailAdapter
 
-	AccountRepository      models.AccountRepository
-	RefreshTokenRepository models.RefreshTokenRepository
+	AccountRepository       models.AccountRepository
+	RefreshTokenRepository  models.RefreshTokenRepository
+	MagicLinkCodeRepository models.MagicLinkCodeRepository
 }
 
 type genAuthOutputInput struct {
@@ -182,4 +184,45 @@ func (serv *AccountService) CreateFromFacebookProvider(i *models.CreateAccountFr
 		code:            i.Code,
 		originUrl:       i.OriginUrl,
 	})
+}
+
+func (serv *AccountService) CreateFromEmailProvider(i *models.CreateAccountFromEmailInput) error {
+	var accountId string
+	var isFirstAccess bool
+
+	existentAccount, err := serv.AccountRepository.GetByEmail(&models.GetAccountByEmailInput{
+		Email: i.Email,
+	})
+	if err != nil {
+		return errors.New("fail to get account")
+	}
+
+	if existentAccount == nil {
+		createdAccount, err := serv.AccountRepository.Create(&models.CreateAccountInput{
+			Email: i.Email,
+		})
+		if err != nil {
+			return errors.New("fail to create account")
+		}
+
+		accountId = createdAccount.Id
+		isFirstAccess = true
+	} else {
+		accountId = existentAccount.AccountId
+	}
+
+	magicLinkCode, err := serv.MagicLinkCodeRepository.Upsert(&models.UpsertMagicLinkRefreshTokenInput{
+		AccountId:     accountId,
+		IsFirstAccess: isFirstAccess,
+	})
+	if err != nil {
+		return errors.New("fail to create account")
+	}
+
+	serv.EmailAdapter.SendVerificationCodeEmail(&adapters.SendVerificationCodeEmailInput{
+		To:   i.Email,
+		Code: magicLinkCode.Code,
+	})
+
+	return nil
 }
