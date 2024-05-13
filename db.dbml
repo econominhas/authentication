@@ -55,19 +55,33 @@ Table auth.sign_in_providers as sip {
   Note: 'Contains user\'s link to sign in providers, like google, discord, etc'
 }
 
-Table auth.contacts as c {
+Table auth.email_addresses as ea {
   account_id String [not null]
-  contact String [not null]
-  type ContactTypeEnum [not null]
+  email_address String [not null]
   created_at DateTime [default: `now()`, not null]
   verified_at DateTime
 
   indexes {
-    (accountId, contact, type) [pk]
-    (contact, type) [unique]
+    (accountId, email_address) [pk]
+    (email_address) [unique]
   }
 
-  Note: 'Contains user\'s email, phone, etc'
+  Note: 'Contains user\'s email addresses'
+}
+
+Table auth.phone_numbers as pn {
+  account_id String [not null]
+  country_code String [not null]
+  phone_number String [not null]
+  created_at DateTime [default: `now()`, not null]
+  verified_at DateTime
+
+  indexes {
+    (accountId, country_code, phone_number) [pk]
+    (country_code, phone_number) [unique]
+  }
+
+  Note: 'Contains user\'s phone numbers'
 }
 
 //// ------------------------------------------------------
@@ -81,11 +95,6 @@ Enum SignInProviderEnum {
   GOOGLE
 }
 
-Enum ContactTypeEnum {
-  EMAIL
-  PHONE
-}
-
 //// ------------------------------------------------------
 ////
 //// Relationships
@@ -95,4 +104,5 @@ Enum ContactTypeEnum {
 Ref: rt.account_id > a.id [delete: Cascade]
 Ref: mlc.account_id > a.id [delete: Cascade]
 Ref: sip.account_id > a.id [delete: Cascade]
-Ref: c.account_id > a.id [delete: Cascade]
+Ref: ea.account_id > a.id [delete: Cascade]
+Ref: pn.account_id > a.id [delete: Cascade]

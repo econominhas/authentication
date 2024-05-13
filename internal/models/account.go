@@ -19,16 +19,32 @@ type CreateAccountSignInProvider struct {
 	ExpiresAt    time.Time
 }
 
+type CreateAccountPhone struct {
+	CountryCode string
+	Number      string
+}
+
 type CreateAccountInput struct {
 	Db sql.Tx
 
 	Email           string
-	Phone           string
+	Phone           CreateAccountPhone
 	SignInProviders []CreateAccountSignInProvider
 }
 
 type CreateAccountOutput struct {
 	Id string
+}
+
+type GetAccountByEmailInput struct {
+	Db sql.Tx
+
+	Email string
+}
+
+type GetAccountByEmailOutput struct {
+	AccountId string
+	Email     string
 }
 
 type GetManyAccountsByProviderInput struct {
@@ -50,6 +66,8 @@ type AccountRepository interface {
 	Create(i *CreateAccountInput) (*CreateAccountOutput, error)
 
 	GetManyByProvider(i *GetManyAccountsByProviderInput) ([]GetManyAccountsByProviderOutput, error)
+
+	GetByEmail(i *GetAccountByEmailInput) (*GetAccountByEmailOutput, error)
 }
 
 // ----------------------------
@@ -91,9 +109,9 @@ type RefreshAccountTokenOutput struct {
 }
 
 type AccountService interface {
-	CreateFromEmail(i *CreateAccountFromEmailInput) (*CreateAccountOutput, error)
+	CreateFromEmail(i *CreateAccountFromEmailInput) error
 
-	CreateFromPhone(i *CreateAccountFromPhoneInput) (*CreateAccountOutput, error)
+	CreateFromPhone(i *CreateAccountFromPhoneInput) error
 
 	CreateFromGoogleProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, error)
 

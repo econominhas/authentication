@@ -17,6 +17,4 @@ type GenRefreshInput struct {
 
 type TokenAdapter interface {
 	GenAccess(i *GenAccessInput) (*GenAccessOutput, error)
-
-	GenRefresh(i *GenRefreshInput) (string, error)
 }

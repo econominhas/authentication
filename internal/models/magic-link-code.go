@@ -6,10 +6,10 @@ import (
 )
 
 type MagicLinkCodeEntity struct {
-	AccountId     string
-	Code          string
-	IsFirstAccess bool
-	CreatedAt     time.Time
+	AccountId     string    `db:"account_id"`
+	Code          string    `db:"code"`
+	IsFirstAccess bool      `db:"is_first_access"`
+	CreatedAt     time.Time `db:"created_at"`
 }
 
 // ----------------------------
@@ -18,14 +18,14 @@ type MagicLinkCodeEntity struct {
 //
 // ----------------------------
 
-type UpsertRefreshTokenInput struct {
+type UpsertMagicLinkRefreshTokenInput struct {
 	Db sql.Tx
 
 	AccountId     string
 	IsFirstAccess bool
 }
 
-type GetRefreshTokenInput struct {
+type GetMagicLinkRefreshTokenInput struct {
 	Db sql.Tx
 
 	AccountId string
@@ -33,6 +33,6 @@ type GetRefreshTokenInput struct {
 }
 
 type MagicLinkCodeRepository interface {
-	Upsert(i *UpsertRefreshTokenInput) (*MagicLinkCodeEntity, error)
-	Get(i *GetRefreshTokenInput) (*MagicLinkCodeEntity, error)
+	Upsert(i *UpsertMagicLinkRefreshTokenInput) (*MagicLinkCodeEntity, error)
+	Get(i *GetMagicLinkRefreshTokenInput) (*MagicLinkCodeEntity, error)
 }
