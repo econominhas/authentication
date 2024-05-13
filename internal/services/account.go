@@ -13,6 +13,7 @@ type AccountService struct {
 	FacebookAdapter adapters.SignInProviderAdapter
 	TokenAdapter    adapters.TokenAdapter
 	EmailAdapter    adapters.EmailAdapter
+	SmsAdapter      adapters.SmsAdapter
 
 	AccountRepository       models.AccountRepository
 	RefreshTokenRepository  models.RefreshTokenRepository
@@ -221,6 +222,48 @@ func (serv *AccountService) CreateFromEmailProvider(i *models.CreateAccountFromE
 
 	serv.EmailAdapter.SendVerificationCodeEmail(&adapters.SendVerificationCodeEmailInput{
 		To:   i.Email,
+		Code: magicLinkCode.Code,
+	})
+
+	return nil
+}
+
+func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromPhoneInput) error {
+	var accountId string
+	var isFirstAccess bool
+
+	existentAccount, err := serv.AccountRepository.GetByPhone(&models.GetAccountByPhoneInput{
+		CountryCode: i.Phone.CountryCode,
+		Number:      i.Phone.Number,
+	})
+	if err != nil {
+		return errors.New("fail to get account")
+	}
+
+	if existentAccount == nil {
+		createdAccount, err := serv.AccountRepository.Create(&models.CreateAccountInput{
+			Phone: i.Phone,
+		})
+		if err != nil {
+			return errors.New("fail to create account")
+		}
+
+		accountId = createdAccount.Id
+		isFirstAccess = true
+	} else {
+		accountId = existentAccount.AccountId
+	}
+
+	magicLinkCode, err := serv.MagicLinkCodeRepository.Upsert(&models.UpsertMagicLinkRefreshTokenInput{
+		AccountId:     accountId,
+		IsFirstAccess: isFirstAccess,
+	})
+	if err != nil {
+		return errors.New("fail to create account")
+	}
+
+	serv.SmsAdapter.SendVerificationCodeSms(&adapters.SendVerificationCodeSmsInput{
+		To:   i.Phone.CountryCode + i.Phone.Number,
 		Code: magicLinkCode.Code,
 	})
 
