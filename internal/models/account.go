@@ -47,6 +47,19 @@ type GetAccountByEmailOutput struct {
 	Email     string
 }
 
+type GetAccountByPhoneInput struct {
+	Db sql.Tx
+
+	CountryCode string
+	Number      string
+}
+
+type GetAccountByPhoneOutput struct {
+	AccountId   string
+	CountryCode string
+	Number      string
+}
+
 type GetManyAccountsByProviderInput struct {
 	Db sql.Tx
 
@@ -68,6 +81,8 @@ type AccountRepository interface {
 	GetManyByProvider(i *GetManyAccountsByProviderInput) ([]GetManyAccountsByProviderOutput, error)
 
 	GetByEmail(i *GetAccountByEmailInput) (*GetAccountByEmailOutput, error)
+
+	GetByPhone(i *GetAccountByPhoneInput) (*GetAccountByPhoneOutput, error)
 }
 
 // ----------------------------
@@ -87,7 +102,7 @@ type CreateAccountFromEmailInput struct {
 }
 
 type CreateAccountFromPhoneInput struct {
-	Phone string
+	Phone CreateAccountPhone
 }
 
 type CreateAccountFromExternalProviderInput struct {
