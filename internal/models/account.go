@@ -111,8 +111,8 @@ type CreateAccountFromExternalProviderInput struct {
 }
 
 type ExchangeAccountCodeInput struct {
+	AccountId string
 	Code      string
-	OriginUrl string
 }
 type RefreshAccountTokenInput struct {
 	RefreshToken string

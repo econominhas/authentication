@@ -269,3 +269,23 @@ func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromP
 
 	return nil
 }
+
+func (serv *AccountService) ExchangeCode(i *models.ExchangeAccountCodeInput) (*models.AuthOutput, error) {
+	magicLinkCode, err := serv.MagicLinkCodeRepository.Get(&models.GetMagicLinkRefreshTokenInput{
+		AccountId: i.AccountId,
+		Code:      i.Code,
+	})
+	if err != nil {
+		return nil, errors.New("fail to get account")
+	}
+
+	if magicLinkCode == nil {
+		return nil, errors.New("magic link code doesn't exist")
+	}
+
+	return serv.genAuthOutput(&genAuthOutputInput{
+		accountId:     i.AccountId,
+		isFirstAccess: magicLinkCode.IsFirstAccess,
+		refresh:       true,
+	})
+}
