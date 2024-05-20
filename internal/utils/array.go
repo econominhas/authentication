@@ -1,6 +1,6 @@
 package utils
 
-func inArray(s string, arr []string) bool {
+func InArray(s string, arr []string) bool {
 	for _, a := range arr {
 		if s == a {
 			return true
@@ -12,7 +12,7 @@ func inArray(s string, arr []string) bool {
 
 func AllInArray(baseArr []string, maybeMissingItems []string) bool {
 	for _, s := range maybeMissingItems {
-		if !inArray(s, baseArr) {
+		if !InArray(s, baseArr) {
 			return false
 		}
 	}

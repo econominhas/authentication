@@ -24,7 +24,7 @@ type RefreshTokenEntity struct {
 // ----------------------------
 
 type CreateRefreshTokenInput struct {
-	Db sql.Tx
+	Db *sql.Tx
 
 	AccountId string
 }
@@ -34,7 +34,7 @@ type CreateRefreshTokenOutput struct {
 }
 
 type GetRefreshTokenInput struct {
-	Db sql.Tx
+	Db *sql.Tx
 
 	AccountId    string
 	RefreshToken string

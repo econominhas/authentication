@@ -25,14 +25,14 @@ type MagicLinkCodeEntity struct {
 // ----------------------------
 
 type UpsertMagicLinkRefreshTokenInput struct {
-	Db sql.Tx
+	Db *sql.Tx
 
 	AccountId     string
 	IsFirstAccess bool
 }
 
 type GetMagicLinkRefreshTokenInput struct {
-	Db sql.Tx
+	Db *sql.Tx
 
 	AccountId string
 	Code      string

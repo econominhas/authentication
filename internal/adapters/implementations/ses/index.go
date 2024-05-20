@@ -8,7 +8,7 @@ type SesAdapter struct {
 	Ses *ses.Client
 }
 
-func NewSesAdapter() *SesAdapter {
+func NewSes() *SesAdapter {
 	sesClient := ses.New(ses.Options{})
 
 	return &SesAdapter{

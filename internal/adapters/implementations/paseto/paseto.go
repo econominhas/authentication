@@ -1,18 +1,18 @@
-package ulid
+package paseto
 
 import (
 	"errors"
 	"os"
 	"time"
 
-	"aidanwoods.dev/go-paseto"
+	goPaseto "aidanwoods.dev/go-paseto"
 	"github.com/econominhas/authentication/internal/adapters"
 )
 
-type TokenAdapter struct{}
+type PasetoAdapter struct{}
 
-func (adp *TokenAdapter) GenAccess(i *adapters.GenAccessInput) (*adapters.GenAccessOutput, error) {
-	secretKey, err := paseto.NewV4AsymmetricSecretKeyFromHex(
+func (adp *PasetoAdapter) GenAccess(i *adapters.GenAccessInput) (*adapters.GenAccessOutput, error) {
+	secretKey, err := goPaseto.NewV4AsymmetricSecretKeyFromHex(
 		os.Getenv("PASETO_PRIVATE_KEY"),
 	)
 	if err != nil {
@@ -21,7 +21,7 @@ func (adp *TokenAdapter) GenAccess(i *adapters.GenAccessInput) (*adapters.GenAcc
 
 	expiresAt := time.Now().Add(15 * time.Minute)
 
-	token := paseto.NewToken()
+	token := goPaseto.NewToken()
 	token.SetSubject(i.AccountId)
 	token.SetIssuedAt(time.Now())
 	token.SetNotBefore(time.Now())
@@ -35,6 +35,6 @@ func (adp *TokenAdapter) GenAccess(i *adapters.GenAccessInput) (*adapters.GenAcc
 	}, nil
 }
 
-func NewTokenAdapter() *TokenAdapter {
-	return &TokenAdapter{}
+func NewPaseto() *PasetoAdapter {
+	return &PasetoAdapter{}
 }

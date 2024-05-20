@@ -138,7 +138,31 @@ func (rep *AccountRepository) GetByEmail(i *models.GetAccountByEmailInput) (*mod
 		`,
 		i.Email,
 	).Scan(data); err != nil {
-		return nil, errors.New("fail to create account")
+		return nil, errors.New("fail to get account by email")
+	}
+
+	return &data, nil
+}
+
+func (rep *AccountRepository) GetByPhone(i *models.GetAccountByPhoneInput) (*models.GetAccountByPhoneOutput, error) {
+	var data models.GetAccountByPhoneOutput
+
+	if err := i.Db.QueryRow(
+		`
+		SELECT
+			pn.account_id as "AccountId"
+			pn.country_code as "CountryCode"
+			pn.phone_number as "Phone"
+		FROM auth.phone_numbers pn
+		WHERE
+			pn.country_code = $1
+			pn.phone_number = $2
+		LIMIT 1
+		`,
+		i.CountryCode,
+		i.Number,
+	).Scan(data); err != nil {
+		return nil, errors.New("fail to get account by phone")
 	}
 
 	return &data, nil
