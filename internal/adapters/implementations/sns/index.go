@@ -6,7 +6,7 @@ type SnsAdapter struct {
 	Sns *sns.Client
 }
 
-func NewSesAdapter() *SnsAdapter {
+func NewSns() *SnsAdapter {
 	snsClient := sns.New(sns.Options{})
 
 	return &SnsAdapter{

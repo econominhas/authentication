@@ -9,8 +9,8 @@ import (
 
 type RefreshTokenRepository struct {
 	IdAdapter     adapters.IdAdapter
-	TokenAdapter  adapters.TokenAdapter
 	SecretAdapter adapters.SecretAdapter
+	TokenAdapter  adapters.TokenAdapter
 }
 
 func (rep *RefreshTokenRepository) Create(i *models.CreateRefreshTokenInput) (*models.CreateRefreshTokenOutput, error) {

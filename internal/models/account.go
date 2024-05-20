@@ -25,7 +25,7 @@ type CreateAccountPhone struct {
 }
 
 type CreateAccountInput struct {
-	Db sql.Tx
+	Db *sql.Tx
 
 	Email           string
 	Phone           CreateAccountPhone
@@ -37,7 +37,7 @@ type CreateAccountOutput struct {
 }
 
 type GetAccountByEmailInput struct {
-	Db sql.Tx
+	Db *sql.Tx
 
 	Email string
 }
@@ -48,7 +48,7 @@ type GetAccountByEmailOutput struct {
 }
 
 type GetAccountByPhoneInput struct {
-	Db sql.Tx
+	Db *sql.Tx
 
 	CountryCode string
 	Number      string
@@ -61,7 +61,7 @@ type GetAccountByPhoneOutput struct {
 }
 
 type GetManyAccountsByProviderInput struct {
-	Db sql.Tx
+	Db *sql.Tx
 
 	ProviderId   string
 	ProviderType string

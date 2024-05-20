@@ -20,8 +20,14 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.7 // indirect
 	github.com/aws/smithy-go v1.20.2 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/pgx v3.6.2+incompatible // indirect
+	github.com/jackc/pgx/v5 v5.5.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
 )
