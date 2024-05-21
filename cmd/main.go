@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/econominhas/authentication/internal/adapters/implementations/facebook"
@@ -13,6 +12,7 @@ import (
 	"github.com/econominhas/authentication/internal/adapters/implementations/ses"
 	"github.com/econominhas/authentication/internal/adapters/implementations/sns"
 	"github.com/econominhas/authentication/internal/adapters/implementations/ulid"
+	"github.com/econominhas/authentication/internal/delivery/http"
 	"github.com/econominhas/authentication/internal/repositories"
 	"github.com/econominhas/authentication/internal/services"
 )
@@ -97,12 +97,7 @@ func main() {
 	//
 	// ----------------------------
 
-	router := http.NewServeMux()
-
-	server := http.Server{
-		Addr:    ":" + os.Getenv("PORT"),
-		Handler: router,
-	}
-
-	server.ListenAndServe()
+	http.NewHttpDelivery(&http.NewHttpDeliveryInput{
+		AccountService: accountService,
+	}).Listen()
 }

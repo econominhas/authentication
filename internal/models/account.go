@@ -126,9 +126,9 @@ type RefreshAccountTokenOutput struct {
 }
 
 type AccountService interface {
-	CreateFromEmail(i *CreateAccountFromEmailInput) error
+	CreateFromEmailProvider(i *CreateAccountFromEmailInput) error
 
-	CreateFromPhone(i *CreateAccountFromPhoneInput) error
+	CreateFromPhoneProvider(i *CreateAccountFromPhoneInput) error
 
 	CreateFromGoogleProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, error)
 
