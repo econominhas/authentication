@@ -15,9 +15,12 @@ import (
 	"github.com/econominhas/authentication/internal/delivery/http"
 	"github.com/econominhas/authentication/internal/repositories"
 	"github.com/econominhas/authentication/internal/services"
+	_ "github.com/lib/pq"
 )
 
 func main() {
+	log.Print("Start")
+
 	// ----------------------------
 	//
 	// Env
@@ -32,12 +35,13 @@ func main() {
 	//
 	// ----------------------------
 
-	db, err := sql.Open("pgx", os.Getenv("DATABASE_URL"))
+	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal(err)
 		panic(1)
 	}
 	defer db.Close()
+	log.Print("Connected to database")
 
 	// ----------------------------
 	//
@@ -52,6 +56,8 @@ func main() {
 	sesAdapter := ses.NewSes()
 	snsAdapter := sns.NewSns()
 	ulidAdapter := ulid.NewUlid()
+
+	log.Print("Adapters initialized")
 
 	// ----------------------------
 	//
@@ -70,6 +76,8 @@ func main() {
 		SecretAdapter: secretAdapter,
 		TokenAdapter:  pasetoAdapter,
 	}
+
+	log.Print("Repositories initialized")
 
 	// ----------------------------
 	//
@@ -90,6 +98,8 @@ func main() {
 		MagicLinkCodeRepository: magicLinkCodeRepository,
 		RefreshTokenRepository:  refreshTokenRepository,
 	}
+
+	log.Print("Services initialized")
 
 	// ----------------------------
 	//

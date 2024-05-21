@@ -1,0 +1,31 @@
+# Git
+/.git
+/.gitignore
+
+# GitHub
+/.github
+
+# Build
+/coverage
+
+# DevTools
+/.vscode
+/localstack
+/.editorconfig
+/LICENSE
+/docker-compose.yml
+
+# Env
+.env.*
+!.env.docker
+
+# Deploy
+/appspec.yml
+
+# Unnecessary
+/openapi
+/scripts
+/tests
+
+# Db
+*.dbml
