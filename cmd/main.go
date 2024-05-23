@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"log"
 	"os"
 
 	"github.com/econominhas/authentication/internal/adapters/implementations/facebook"
@@ -19,7 +18,9 @@ import (
 )
 
 func main() {
-	log.Print("Start")
+	logger := newLogger()
+
+	logger.Info("Start")
 
 	// ----------------------------
 	//
@@ -27,7 +28,11 @@ func main() {
 	//
 	// ----------------------------
 
-	validateEnvs()
+	logger.Debug("Validating env vars")
+
+	validateEnvs(logger)
+
+	logger.Info("Env vars validated")
 
 	// ----------------------------
 	//
@@ -35,13 +40,19 @@ func main() {
 	//
 	// ----------------------------
 
+	logger.Debug("Trying to connect to the database")
+
 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(
+			"Fail to connect to the database",
+			"message", err.Error(),
+		)
 		panic(1)
 	}
 	defer db.Close()
-	log.Print("Connected to database")
+
+	logger.Info("Connected to database")
 
 	// ----------------------------
 	//
@@ -49,15 +60,17 @@ func main() {
 	//
 	// ----------------------------
 
-	googleAdapter := google.NewGoogle()
-	facebookAdapter := facebook.NewFacebook()
-	pasetoAdapter := paseto.NewPaseto()
-	secretAdapter := secret.NewSecret()
-	sesAdapter := ses.NewSes()
-	snsAdapter := sns.NewSns()
-	ulidAdapter := ulid.NewUlid()
+	logger.Debug("Initializing adapters")
 
-	log.Print("Adapters initialized")
+	googleAdapter := google.NewGoogle(logger)
+	facebookAdapter := facebook.NewFacebook(logger)
+	pasetoAdapter := paseto.NewPaseto(logger)
+	secretAdapter := secret.NewSecret(logger)
+	sesAdapter := ses.NewSes(logger)
+	snsAdapter := sns.NewSns(logger)
+	ulidAdapter := ulid.NewUlid(logger)
+
+	logger.Info("Adapters initialized")
 
 	// ----------------------------
 	//
@@ -65,19 +78,27 @@ func main() {
 	//
 	// ----------------------------
 
+	logger.Debug("Initializing repositories")
+
 	accountRepository := &repositories.AccountRepository{
+		Logger: logger,
+
 		IdAdapter: ulidAdapter,
 	}
 	magicLinkCodeRepository := &repositories.MagicLinkCodeRepository{
+		Logger: logger,
+
 		SecretAdapter: secretAdapter,
 	}
 	refreshTokenRepository := &repositories.RefreshTokenRepository{
+		Logger: logger,
+
 		IdAdapter:     ulidAdapter,
 		SecretAdapter: secretAdapter,
 		TokenAdapter:  pasetoAdapter,
 	}
 
-	log.Print("Repositories initialized")
+	logger.Info("Repositories initialized")
 
 	// ----------------------------
 	//
@@ -85,7 +106,11 @@ func main() {
 	//
 	// ----------------------------
 
+	logger.Debug("Initializing services")
+
 	accountService := &services.AccountService{
+		Logger: logger,
+
 		GoogleAdapter:   googleAdapter,
 		FacebookAdapter: facebookAdapter,
 		TokenAdapter:    pasetoAdapter,
@@ -99,13 +124,16 @@ func main() {
 		RefreshTokenRepository:  refreshTokenRepository,
 	}
 
-	log.Print("Services initialized")
+	logger.Info("Services initialized")
 
 	// ----------------------------
 	//
 	// Routers
 	//
 	// ----------------------------
+
+	logger.Debug("Initializing http server")
+	logger.Info("Http server initialized on port: " + os.Getenv("PORT"))
 
 	http.NewHttpDelivery(&http.NewHttpDeliveryInput{
 		AccountService: accountService,

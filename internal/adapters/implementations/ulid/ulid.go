@@ -5,10 +5,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/econominhas/authentication/internal/models"
 	"github.com/oklog/ulid/v2"
 )
 
-type Ulid struct{}
+type Ulid struct {
+	logger models.Logger
+}
 
 var entropyPool = sync.Pool{
 	New: func() any {
@@ -25,6 +28,8 @@ func (adp *Ulid) GenId() (string, error) {
 	return s, nil
 }
 
-func NewUlid() *Ulid {
-	return &Ulid{}
+func NewUlid(logger models.Logger) *Ulid {
+	return &Ulid{
+		logger: logger,
+	}
 }

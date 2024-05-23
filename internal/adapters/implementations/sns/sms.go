@@ -10,7 +10,7 @@ import (
 func (adp *SnsAdapter) SendVerificationCodeSms(i *adapters.SendVerificationCodeSmsInput) error {
 	body := "" + i.Code
 
-	_, err := adp.Sns.Publish(context.TODO(), &sns.PublishInput{
+	_, err := adp.sns.Publish(context.TODO(), &sns.PublishInput{
 		PhoneNumber: &i.To,
 		Message:     &body,
 	})

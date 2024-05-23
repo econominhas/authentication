@@ -10,6 +10,8 @@ import (
 )
 
 type AccountService struct {
+	Logger models.Logger
+
 	GoogleAdapter   adapters.SignInProviderAdapter
 	FacebookAdapter adapters.SignInProviderAdapter
 	TokenAdapter    adapters.TokenAdapter

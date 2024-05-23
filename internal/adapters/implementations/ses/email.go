@@ -14,7 +14,7 @@ func (adp *SesAdapter) SendVerificationCodeEmail(i *adapters.SendVerificationCod
 	subject := "Bem vindo ao Econominhas!"
 	body := "" + i.Code
 
-	_, err := adp.Ses.SendEmail(context.TODO(), &ses.SendEmailInput{
+	_, err := adp.ses.SendEmail(context.TODO(), &ses.SendEmailInput{
 		Destination: &types.Destination{
 			ToAddresses: []string{i.To},
 		},
