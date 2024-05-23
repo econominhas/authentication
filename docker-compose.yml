@@ -1,0 +1,62 @@
+services:
+  localstack:
+    # https://medium.com/@muthomititus/a-guide-to-localstack-with-docker-compose-e1487e3a776f
+    image: localstack/localstack:1.0.4
+    container_name: authentication-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3:4566
+      - HOSTNAME=localstack
+      - HOSTNAME_EXTERNAL=localstack
+      - DEFAULT_REGION=us-east-1
+    volumes:
+      - "./localstack/buckets.sh:/docker-entrypoint-initaws.d/buckets.sh"
+    networks:
+      - authentication-api_network
+
+  postgres:
+    image: "postgres:latest"
+    container_name: authentication-postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: database
+    volumes:
+      - "postgres:/var/lib/postgresql/data/"
+    networks:
+      - authentication-api_network
+
+  api:
+    build:
+      context: "."
+      dockerfile: Dockerfile.dev
+    image: authentication-api
+    container_name: authentication-api
+    command: ./bin
+    depends_on:
+      - postgres
+      - localstack
+    ports:
+      - 3000:3000
+    env_file:
+      - .env.docker
+    # volumes:
+    #   - ./cmd:/app/cmd
+    #   - ./internal:/app/internal
+    networks:
+      - authentication-api_network
+
+volumes:
+  postgres:
+
+networks:
+  authentication-api_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          ip_range: 172.28.5.0/24
+          gateway: 172.28.5.254
