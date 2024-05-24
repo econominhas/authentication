@@ -9,6 +9,8 @@ import (
 )
 
 type AccountRepository struct {
+	Logger models.Logger
+
 	IdAdapter adapters.IdAdapter
 }
 

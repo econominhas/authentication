@@ -1,13 +1,20 @@
 package secret
 
-import "github.com/econominhas/authentication/internal/utils"
+import (
+	"github.com/econominhas/authentication/internal/models"
+	"github.com/econominhas/authentication/internal/utils"
+)
 
-type SecretAdapter struct{}
+type SecretAdapter struct {
+	logger models.Logger
+}
 
 func (adp *SecretAdapter) GenSecret(length int) (string, error) {
 	return utils.GenRandomString(length), nil
 }
 
-func NewSecret() *SecretAdapter {
-	return &SecretAdapter{}
+func NewSecret(logger models.Logger) *SecretAdapter {
+	return &SecretAdapter{
+		logger: logger,
+	}
 }

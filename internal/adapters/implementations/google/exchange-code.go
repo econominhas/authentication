@@ -21,6 +21,10 @@ type exchangeTokenApiOutput struct {
 }
 
 func (adp *GoogleAdapter) ExchangeCode(i *adapters.ExchangeCodeInput) (*adapters.ExchangeCodeOutput, error) {
+	adp.logger.Info("Start ExchangeCode")
+
+	adp.logger.Debug("Building exchange code body")
+
 	// ALERT: The order of the properties is important, don't change it!
 	body := url.Values{}
 	body.Set("code", i.Code)
@@ -32,6 +36,10 @@ func (adp *GoogleAdapter) ExchangeCode(i *adapters.ExchangeCodeInput) (*adapters
 	body.Set("grant_type", "authorization_code")
 	// ALERT: The order of the properties is important, don't change it!
 
+	adp.logger.Debug("Exchange code  built")
+
+	adp.logger.Debug("Building request to exchange code")
+
 	req, err := http.NewRequest(
 		http.MethodPost,
 		"https://oauth2.googleapis.com/token",
@@ -40,20 +48,42 @@ func (adp *GoogleAdapter) ExchangeCode(i *adapters.ExchangeCodeInput) (*adapters
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	if err != nil {
+		adp.logger.Error(
+			"Fail to build request to exchange code",
+			"message", err.Error(),
+		)
+
 		return nil, errors.New("fail to build request")
 	}
 
+	adp.logger.Debug("Doing request to exchange code")
+
 	codeRes, err := adp.httpClient.Do(req)
 	if err != nil {
+		adp.logger.Error(
+			"Fail to make request to exchange code",
+			"message", err.Error(),
+		)
 		return nil, errors.New("fail to make request")
 	}
 	defer codeRes.Body.Close()
 
+	adp.logger.Debug("Request to exchange code done")
+
+	adp.logger.Debug("Try to decode response body")
+
 	exchangeCode := exchangeTokenApiOutput{}
 	err = json.NewDecoder(codeRes.Body).Decode(&exchangeCode)
 	if err != nil {
+		adp.logger.Error(
+			"Fail to make decode response body",
+			"message", err.Error(),
+		)
+
 		return nil, errors.New("fail to decode request body")
 	}
+
+	adp.logger.Debug("Response body decoded")
 
 	expDate := time.
 		Now().
@@ -69,6 +99,8 @@ func (adp *GoogleAdapter) ExchangeCode(i *adapters.ExchangeCodeInput) (*adapters
 		Scopes:       strings.Split(exchangeCode.Scope, " "),
 		ExpiresAt:    expDate,
 	}
+
+	adp.logger.Info("Successfully finish ExchangeCode")
 
 	return &output, nil
 }

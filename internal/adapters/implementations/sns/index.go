@@ -1,15 +1,21 @@
 package sns
 
-import "github.com/aws/aws-sdk-go-v2/service/sns"
+import (
+	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/econominhas/authentication/internal/models"
+)
 
 type SnsAdapter struct {
-	Sns *sns.Client
+	logger models.Logger
+
+	sns *sns.Client
 }
 
-func NewSns() *SnsAdapter {
+func NewSns(logger models.Logger) *SnsAdapter {
 	snsClient := sns.New(sns.Options{})
 
 	return &SnsAdapter{
-		Sns: snsClient,
+		logger: logger,
+		sns:    snsClient,
 	}
 }

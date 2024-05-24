@@ -8,6 +8,8 @@ import (
 )
 
 type RefreshTokenRepository struct {
+	Logger models.Logger
+
 	IdAdapter     adapters.IdAdapter
 	SecretAdapter adapters.SecretAdapter
 	TokenAdapter  adapters.TokenAdapter

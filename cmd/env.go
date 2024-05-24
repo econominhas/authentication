@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/econominhas/authentication/internal/models"
 	"github.com/econominhas/authentication/internal/utils"
 )
 
@@ -56,7 +57,7 @@ var requiredEnvVars = []EnvVar{
 	},
 }
 
-func validateEnvs() {
+func validateEnvs(logger models.Logger) {
 	for _, v := range requiredEnvVars {
 		envVar := os.Getenv(v.Name)
 

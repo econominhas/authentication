@@ -9,6 +9,8 @@ import (
 )
 
 type MagicLinkCodeRepository struct {
+	Logger models.Logger
+
 	SecretAdapter adapters.SecretAdapter
 }
 

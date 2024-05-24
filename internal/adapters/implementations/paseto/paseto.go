@@ -7,9 +7,12 @@ import (
 
 	goPaseto "aidanwoods.dev/go-paseto"
 	"github.com/econominhas/authentication/internal/adapters"
+	"github.com/econominhas/authentication/internal/models"
 )
 
-type PasetoAdapter struct{}
+type PasetoAdapter struct {
+	logger models.Logger
+}
 
 func (adp *PasetoAdapter) GenAccess(i *adapters.GenAccessInput) (*adapters.GenAccessOutput, error) {
 	secretKey, err := goPaseto.NewV4AsymmetricSecretKeyFromHex(
@@ -35,6 +38,8 @@ func (adp *PasetoAdapter) GenAccess(i *adapters.GenAccessInput) (*adapters.GenAc
 	}, nil
 }
 
-func NewPaseto() *PasetoAdapter {
-	return &PasetoAdapter{}
+func NewPaseto(logger models.Logger) *PasetoAdapter {
+	return &PasetoAdapter{
+		logger: logger,
+	}
 }
