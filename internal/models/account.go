@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	"time"
+
+	"github.com/econominhas/authentication/internal/utils"
 )
 
 // ----------------------------
@@ -126,15 +128,15 @@ type RefreshAccountTokenOutput struct {
 }
 
 type AccountService interface {
-	CreateFromEmailProvider(i *CreateAccountFromEmailInput) error
+	CreateFromEmailProvider(i *CreateAccountFromEmailInput) *utils.HttpError
 
-	CreateFromPhoneProvider(i *CreateAccountFromPhoneInput) error
+	CreateFromPhoneProvider(i *CreateAccountFromPhoneInput) *utils.HttpError
 
-	CreateFromGoogleProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, error)
+	CreateFromGoogleProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, *utils.HttpError)
 
-	CreateFromFacebookProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, error)
+	CreateFromFacebookProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, *utils.HttpError)
 
-	ExchangeCode(i *ExchangeAccountCodeInput) (*AuthOutput, error)
+	ExchangeCode(i *ExchangeAccountCodeInput) (*AuthOutput, *utils.HttpError)
 
-	RefreshToken(i *RefreshAccountTokenInput) (*RefreshAccountTokenOutput, error)
+	RefreshToken(i *RefreshAccountTokenInput) (*RefreshAccountTokenOutput, *utils.HttpError)
 }
