@@ -40,5 +40,6 @@ type GetMagicLinkRefreshTokenInput struct {
 
 type MagicLinkCodeRepository interface {
 	Upsert(i *UpsertMagicLinkRefreshTokenInput) (*MagicLinkCodeEntity, error)
+
 	Get(i *GetMagicLinkRefreshTokenInput) (*MagicLinkCodeEntity, error)
 }

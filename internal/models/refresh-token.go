@@ -42,5 +42,6 @@ type GetRefreshTokenInput struct {
 
 type RefreshTokenRepository interface {
 	Create(i *CreateRefreshTokenInput) (*CreateRefreshTokenOutput, error)
+
 	Get(i *GetRefreshTokenInput) (bool, error)
 }

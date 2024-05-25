@@ -2,11 +2,12 @@ package services
 
 import (
 	"database/sql"
-	"errors"
+	"net/http"
 	"sync"
 
 	"github.com/econominhas/authentication/internal/adapters"
 	"github.com/econominhas/authentication/internal/models"
+	"github.com/econominhas/authentication/internal/utils"
 )
 
 type AccountService struct {
@@ -42,7 +43,7 @@ type createFromExternalProviderInput struct {
 	originUrl       string
 }
 
-func (serv *AccountService) genAuthOutput(i *genAuthOutputInput) (*models.AuthOutput, error) {
+func (serv *AccountService) genAuthOutput(i *genAuthOutputInput) (*models.AuthOutput, *utils.HttpError) {
 	var wg sync.WaitGroup
 	var refreshToken *models.CreateRefreshTokenOutput
 	var accessToken *adapters.GenAccessOutput
@@ -72,7 +73,10 @@ func (serv *AccountService) genAuthOutput(i *genAuthOutputInput) (*models.AuthOu
 
 	if err != nil {
 		i.db.Rollback()
-		return nil, errors.New("fail to generate auth output")
+		return nil, &utils.HttpError{
+			Message:    "fail to generate auth output",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	i.db.Commit()
@@ -84,31 +88,43 @@ func (serv *AccountService) genAuthOutput(i *genAuthOutputInput) (*models.AuthOu
 	}, nil
 }
 
-func (serv *AccountService) createFromExternal(i *createFromExternalProviderInput) (*models.AuthOutput, error) {
+func (serv *AccountService) createFromExternal(i *createFromExternalProviderInput) (*models.AuthOutput, *utils.HttpError) {
 	exchangeCode, err := (*i.providerService).ExchangeCode(&adapters.ExchangeCodeInput{
 		Code:      i.code,
 		OriginUrl: i.originUrl,
 	})
 	if err != nil {
 		i.db.Rollback()
-		return nil, errors.New("fail to exchange code")
+		return nil, &utils.HttpError{
+			Message:    "fail to exchange code",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	hasRequiredScopes := (*i.providerService).HasRequiredScopes(exchangeCode.Scopes)
 	if !hasRequiredScopes {
 		i.db.Rollback()
-		return nil, errors.New("missing scopes")
+		return nil, &utils.HttpError{
+			Message:    "missing scopes",
+			StatusCode: http.StatusBadRequest,
+		}
 	}
 
 	providerData, err := (*i.providerService).GetUserData(exchangeCode.AccessToken)
 	if err != nil {
 		i.db.Rollback()
-		return nil, errors.New("fail to get external user data")
+		return nil, &utils.HttpError{
+			Message:    "fail to get external user data",
+			StatusCode: http.StatusBadGateway,
+		}
 	}
 
 	if !providerData.IsEmailVerified {
 		i.db.Rollback()
-		return nil, errors.New("unverified email")
+		return nil, &utils.HttpError{
+			Message:    "unverified email",
+			StatusCode: http.StatusBadRequest,
+		}
 	}
 
 	relatedAccounts, err := serv.AccountRepository.GetManyByProvider(&models.GetManyAccountsByProviderInput{
@@ -120,7 +136,10 @@ func (serv *AccountService) createFromExternal(i *createFromExternalProviderInpu
 	})
 	if err != nil {
 		i.db.Rollback()
-		return nil, errors.New("fail to get related accounts")
+		return nil, &utils.HttpError{
+			Message:    "fail to get related accounts",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	var accountId string
@@ -161,7 +180,10 @@ func (serv *AccountService) createFromExternal(i *createFromExternalProviderInpu
 
 		if accountId == "" {
 			i.db.Rollback()
-			return nil, errors.New("fail to relate account")
+			return nil, &utils.HttpError{
+				Message:    "fail to relate account",
+				StatusCode: http.StatusInternalServerError,
+			}
 		}
 	} else {
 		result, err := serv.AccountRepository.Create(&models.CreateAccountInput{
@@ -180,7 +202,10 @@ func (serv *AccountService) createFromExternal(i *createFromExternalProviderInpu
 		})
 		if err != nil {
 			i.db.Rollback()
-			return nil, errors.New("fail to create account")
+			return nil, &utils.HttpError{
+				Message:    "fail to create account",
+				StatusCode: http.StatusInternalServerError,
+			}
 		}
 
 		accountId = result.Id
@@ -194,10 +219,13 @@ func (serv *AccountService) createFromExternal(i *createFromExternalProviderInpu
 	})
 }
 
-func (serv *AccountService) CreateFromGoogleProvider(i *models.CreateAccountFromExternalProviderInput) (*models.AuthOutput, error) {
+func (serv *AccountService) CreateFromGoogleProvider(i *models.CreateAccountFromExternalProviderInput) (*models.AuthOutput, *utils.HttpError) {
 	tx, err := serv.Db.Begin()
 	if err != nil {
-		return nil, errors.New("fail to create transaction")
+		return nil, &utils.HttpError{
+			Message:    "fail to create transaction",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	return serv.createFromExternal(&createFromExternalProviderInput{
@@ -210,10 +238,13 @@ func (serv *AccountService) CreateFromGoogleProvider(i *models.CreateAccountFrom
 	})
 }
 
-func (serv *AccountService) CreateFromFacebookProvider(i *models.CreateAccountFromExternalProviderInput) (*models.AuthOutput, error) {
+func (serv *AccountService) CreateFromFacebookProvider(i *models.CreateAccountFromExternalProviderInput) (*models.AuthOutput, *utils.HttpError) {
 	tx, err := serv.Db.Begin()
 	if err != nil {
-		return nil, errors.New("fail to create transaction")
+		return nil, &utils.HttpError{
+			Message:    "fail to create transaction",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	return serv.createFromExternal(&createFromExternalProviderInput{
@@ -226,10 +257,13 @@ func (serv *AccountService) CreateFromFacebookProvider(i *models.CreateAccountFr
 	})
 }
 
-func (serv *AccountService) CreateFromEmailProvider(i *models.CreateAccountFromEmailInput) error {
+func (serv *AccountService) CreateFromEmailProvider(i *models.CreateAccountFromEmailInput) *utils.HttpError {
 	tx, err := serv.Db.Begin()
 	if err != nil {
-		return errors.New("fail to create transaction")
+		return &utils.HttpError{
+			Message:    "fail to create transaction",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	var accountId string
@@ -242,7 +276,10 @@ func (serv *AccountService) CreateFromEmailProvider(i *models.CreateAccountFromE
 	})
 	if err != nil {
 		tx.Rollback()
-		return errors.New("fail to get account")
+		return &utils.HttpError{
+			Message:    "fail to get account",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	if existentAccount == nil {
@@ -253,7 +290,10 @@ func (serv *AccountService) CreateFromEmailProvider(i *models.CreateAccountFromE
 		})
 		if err != nil {
 			tx.Rollback()
-			return errors.New("fail to create account")
+			return &utils.HttpError{
+				Message:    "fail to create account",
+				StatusCode: http.StatusInternalServerError,
+			}
 		}
 
 		accountId = createdAccount.Id
@@ -270,7 +310,10 @@ func (serv *AccountService) CreateFromEmailProvider(i *models.CreateAccountFromE
 	})
 	if err != nil {
 		tx.Rollback()
-		return errors.New("fail to create account")
+		return &utils.HttpError{
+			Message:    "fail to create account",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	err = serv.EmailAdapter.SendVerificationCodeEmail(&adapters.SendVerificationCodeEmailInput{
@@ -279,7 +322,10 @@ func (serv *AccountService) CreateFromEmailProvider(i *models.CreateAccountFromE
 	})
 	if err != nil {
 		tx.Rollback()
-		return errors.New("fail to send sms")
+		return &utils.HttpError{
+			Message:    "fail to send sms",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	tx.Commit()
@@ -287,10 +333,13 @@ func (serv *AccountService) CreateFromEmailProvider(i *models.CreateAccountFromE
 	return nil
 }
 
-func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromPhoneInput) error {
+func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromPhoneInput) *utils.HttpError {
 	tx, err := serv.Db.Begin()
 	if err != nil {
-		return errors.New("fail to create transaction")
+		return &utils.HttpError{
+			Message:    "fail to create transaction",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	var accountId string
@@ -304,7 +353,10 @@ func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromP
 	})
 	if err != nil {
 		tx.Rollback()
-		return errors.New("fail to get account")
+		return &utils.HttpError{
+			Message:    "fail to get account",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	if existentAccount == nil {
@@ -315,7 +367,10 @@ func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromP
 		})
 		if err != nil {
 			tx.Rollback()
-			return errors.New("fail to create account")
+			return &utils.HttpError{
+				Message:    "fail to create account",
+				StatusCode: http.StatusInternalServerError,
+			}
 		}
 
 		accountId = createdAccount.Id
@@ -332,7 +387,10 @@ func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromP
 	})
 	if err != nil {
 		tx.Rollback()
-		return errors.New("fail to create account")
+		return &utils.HttpError{
+			Message:    "fail to create account",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	err = serv.SmsAdapter.SendVerificationCodeSms(&adapters.SendVerificationCodeSmsInput{
@@ -341,7 +399,10 @@ func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromP
 	})
 	if err != nil {
 		tx.Rollback()
-		return errors.New("fail to send sms")
+		return &utils.HttpError{
+			Message:    "fail to send sms",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	tx.Commit()
@@ -349,10 +410,13 @@ func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromP
 	return nil
 }
 
-func (serv *AccountService) ExchangeCode(i *models.ExchangeAccountCodeInput) (*models.AuthOutput, error) {
+func (serv *AccountService) ExchangeCode(i *models.ExchangeAccountCodeInput) (*models.AuthOutput, *utils.HttpError) {
 	tx, err := serv.Db.Begin()
 	if err != nil {
-		return nil, errors.New("fail to create transaction")
+		return nil, &utils.HttpError{
+			Message:    "fail to create transaction",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	magicLinkCode, err := serv.MagicLinkCodeRepository.Get(&models.GetMagicLinkRefreshTokenInput{
@@ -363,12 +427,18 @@ func (serv *AccountService) ExchangeCode(i *models.ExchangeAccountCodeInput) (*m
 	})
 	if err != nil {
 		tx.Rollback()
-		return nil, errors.New("fail to get account")
+		return nil, &utils.HttpError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	if magicLinkCode == nil {
 		tx.Rollback()
-		return nil, errors.New("magic link code doesn't exist")
+		return nil, &utils.HttpError{
+			Message:    "magic link code doesn't exist",
+			StatusCode: http.StatusNotFound,
+		}
 	}
 
 	tx.Commit()
@@ -382,10 +452,13 @@ func (serv *AccountService) ExchangeCode(i *models.ExchangeAccountCodeInput) (*m
 	})
 }
 
-func (serv *AccountService) RefreshToken(i *models.RefreshAccountTokenInput) (*models.RefreshAccountTokenOutput, error) {
+func (serv *AccountService) RefreshToken(i *models.RefreshAccountTokenInput) (*models.RefreshAccountTokenOutput, *utils.HttpError) {
 	tx, err := serv.Db.Begin()
 	if err != nil {
-		return nil, errors.New("fail to create transaction")
+		return nil, &utils.HttpError{
+			Message:    "fail to create transaction",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	refreshToken, err := serv.RefreshTokenRepository.Get(&models.GetRefreshTokenInput{
@@ -396,12 +469,18 @@ func (serv *AccountService) RefreshToken(i *models.RefreshAccountTokenInput) (*m
 	})
 	if err != nil {
 		tx.Rollback()
-		return nil, errors.New("fail to get account")
+		return nil, &utils.HttpError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	if !refreshToken {
 		tx.Rollback()
-		return nil, errors.New("refresh token doesn't exist")
+		return nil, &utils.HttpError{
+			Message:    "refresh token doesn't exist",
+			StatusCode: http.StatusNotFound,
+		}
 	}
 
 	accessToken, err := serv.TokenAdapter.GenAccess(&adapters.GenAccessInput{
@@ -409,7 +488,10 @@ func (serv *AccountService) RefreshToken(i *models.RefreshAccountTokenInput) (*m
 	})
 	if err != nil {
 		tx.Rollback()
-		return nil, errors.New("fail to generate access token")
+		return nil, &utils.HttpError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	tx.Commit()

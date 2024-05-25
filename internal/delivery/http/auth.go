@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/econominhas/authentication/internal/models"
+	"github.com/econominhas/authentication/internal/utils"
 )
 
 func (dlv *HttpDelivery) auth() {
@@ -20,7 +21,7 @@ func (dlv *HttpDelivery) auth() {
 
 		result, err := (*dlv.accountService).CreateFromGoogleProvider(body)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
 			return
 		}
 
