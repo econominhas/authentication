@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"regexp"
 	"strings"
@@ -62,21 +62,37 @@ func validateEnvs(logger models.Logger) {
 		envVar := os.Getenv(v.Name)
 
 		if v.Required && envVar == "" {
-			log.Fatalf("Missing \"%s\"", v.Name)
+			logger.Error(
+				fmt.Sprintf("Missing \"%s\"", v.Name),
+			)
 			panic(1)
 		}
 
 		if v.Numeric {
-			match, err := regexp.MatchString("^[0-9]*$", envVar)
+			exp, err := regexp.Compile("^[0-9]*$")
+			if err != nil {
+				logger.Error("Fail to compile regex")
+				panic(1)
+			}
 
-			if err != nil || !match {
-				log.Fatalf("\"%s\" must be numeric", v.Name)
+			match := exp.Match([]byte(envVar))
+
+			if !match {
+				logger.Error(
+					fmt.Sprintf("\"%s\" must be numeric", v.Name),
+				)
 				panic(1)
 			}
 		}
 
 		if len(v.AllowedValues) > 0 && !utils.InArray(envVar, v.AllowedValues) {
-			log.Fatalf("Variable \"%s\" don't match allowed values: %s", v.Name, strings.Join(v.AllowedValues, ", "))
+			logger.Error(
+				fmt.Sprintf(
+					"Variable \"%s\" don't match allowed values: %s",
+					v.Name,
+					strings.Join(v.AllowedValues, ", "),
+				),
+			)
 			panic(1)
 		}
 	}
