@@ -135,7 +135,8 @@ func main() {
 	logger.Debug("Initializing http server")
 	logger.Info("Http server initialized on port: " + os.Getenv("PORT"))
 
-	http.NewHttpDelivery(&http.NewHttpDeliveryInput{
+	httpDelivery := http.NewHttpDelivery(&http.NewHttpDeliveryInput{
 		AccountService: accountService,
-	}).Listen()
+	})
+	httpDelivery.Listen()
 }

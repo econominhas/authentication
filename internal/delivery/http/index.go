@@ -19,7 +19,7 @@ type NewHttpDeliveryInput struct {
 }
 
 func (dlv *HttpDelivery) Listen() {
-	dlv.auth()
+	dlv.AuthController()
 
 	dlv.server.ListenAndServe()
 }
