@@ -4,12 +4,14 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/econominhas/authentication/internal/delivery"
 	"github.com/econominhas/authentication/internal/models"
 )
 
 type HttpDelivery struct {
-	server *http.Server
-	router *http.ServeMux
+	server    *http.Server
+	router    *http.ServeMux
+	validator delivery.Validator
 
 	accountService models.AccountService
 }
@@ -33,8 +35,9 @@ func NewHttpDelivery(i *NewHttpDeliveryInput) *HttpDelivery {
 	}
 
 	return &HttpDelivery{
-		server: server,
-		router: router,
+		server:    server,
+		router:    router,
+		validator: delivery.NewValidator(),
 
 		accountService: i.AccountService,
 	}

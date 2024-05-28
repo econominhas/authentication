@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/econominhas/authentication/internal/delivery"
 	"github.com/econominhas/authentication/internal/models"
 	"github.com/econominhas/authentication/internal/utils"
 )
 
 type AuthController struct {
-	prefix         string
-	router         *http.ServeMux
+	prefix string
+
+	router    *http.ServeMux
+	validator delivery.Validator
+
 	accountService models.AccountService
 }
 
@@ -21,6 +25,12 @@ func (c *AuthController) CreateFromEmailProvider() {
 	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
 		body := &models.CreateAccountFromEmailInput{}
 		err := json.NewDecoder(r.Body).Decode(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = c.validator.Validate(body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -45,6 +55,12 @@ func (c *AuthController) CreateFromPhoneProvider() {
 			return
 		}
 
+		err = c.validator.Validate(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		err = c.accountService.CreateFromPhoneProvider(body)
 		if err != nil {
 			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
@@ -59,6 +75,12 @@ func (c *AuthController) CreateFromGoogleProvider() {
 	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
 		body := &models.CreateAccountFromExternalProviderInput{}
 		err := json.NewDecoder(r.Body).Decode(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = c.validator.Validate(body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -85,6 +107,12 @@ func (c *AuthController) CreateFromFacebookProvider() {
 			return
 		}
 
+		err = c.validator.Validate(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		result, err := c.accountService.CreateFromFacebookProvider(body)
 		if err != nil {
 			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
@@ -101,6 +129,12 @@ func (c *AuthController) ExchangeCode() {
 	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
 		body := &models.ExchangeAccountCodeInput{}
 		err := json.NewDecoder(r.Body).Decode(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = c.validator.Validate(body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -127,6 +161,12 @@ func (c *AuthController) RefreshToken() {
 			return
 		}
 
+		err = c.validator.Validate(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		result, err := c.accountService.RefreshToken(body)
 		if err != nil {
 			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
@@ -141,6 +181,7 @@ func (dlv *HttpDelivery) AuthController() {
 	controller := &AuthController{
 		prefix:         "/auth",
 		router:         dlv.router,
+		validator:      dlv.validator,
 		accountService: dlv.accountService,
 	}
 

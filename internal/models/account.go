@@ -100,31 +100,31 @@ type AuthOutput struct {
 }
 
 type CreateAccountFromEmailInput struct {
-	Email string
+	Email string `validate:"required,email"`
 }
 
 type CreateAccountFromPhoneInput struct {
-	Phone CreateAccountPhone
+	Phone CreateAccountPhone `validate:"required,numeric"`
 }
 
 type CreateAccountFromExternalProviderInput struct {
-	Code      string
-	OriginUrl string
+	Code      string `validate:"required,alphanum"`
+	OriginUrl string `validate:"url"`
 }
 
 type ExchangeAccountCodeInput struct {
-	AccountId string
-	Code      string
+	AccountId string `validate:"required,ulid"`
+	Code      string `validate:"required,alphanum"`
 }
 
 type RefreshAccountTokenInput struct {
-	AccountId    string
-	RefreshToken string
+	AccountId    string `validate:"required,ulid"`
+	RefreshToken string `validate:"required,alphanum"`
 }
 
 type RefreshAccountTokenOutput struct {
-	AccessToken string
-	ExpiresAt   time.Time
+	AccessToken string    `json:"accessToken"`
+	ExpiresAt   time.Time `json:"expiresAt"`
 }
 
 type AccountService interface {
