@@ -12,10 +12,10 @@ import (
 // ----------------------------
 
 type MagicLinkCodeEntity struct {
-	AccountId     string    `db:"account_id"`
-	Code          string    `db:"code"`
-	IsFirstAccess bool      `db:"is_first_access"`
-	CreatedAt     time.Time `db:"created_at"`
+	AccountId     string    `db:"account_id" json:"accountId,omitempty"`
+	Code          string    `db:"code" json:"code,omitempty"`
+	IsFirstAccess bool      `db:"is_first_access" json:"isFirstAccess,omitempty"`
+	CreatedAt     time.Time `db:"created_at" json:"createdAt,omitempty"`
 }
 
 // ----------------------------

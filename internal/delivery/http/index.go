@@ -11,7 +11,7 @@ type HttpDelivery struct {
 	server *http.Server
 	router *http.ServeMux
 
-	accountService *models.AccountService
+	accountService models.AccountService
 }
 
 type NewHttpDeliveryInput struct {
@@ -36,6 +36,6 @@ func NewHttpDelivery(i *NewHttpDeliveryInput) *HttpDelivery {
 		server: server,
 		router: router,
 
-		accountService: &i.AccountService,
+		accountService: i.AccountService,
 	}
 }

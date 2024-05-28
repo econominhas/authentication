@@ -12,7 +12,7 @@ import (
 type AuthController struct {
 	prefix         string
 	router         *http.ServeMux
-	accountService *models.AccountService
+	accountService models.AccountService
 }
 
 func (c *AuthController) CreateFromEmailProvider() {
@@ -26,7 +26,7 @@ func (c *AuthController) CreateFromEmailProvider() {
 			return
 		}
 
-		err = (*c.accountService).CreateFromEmailProvider(body)
+		err = c.accountService.CreateFromEmailProvider(body)
 		if err != nil {
 			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
 			return
@@ -45,7 +45,7 @@ func (c *AuthController) CreateFromPhoneProvider() {
 			return
 		}
 
-		err = (*c.accountService).CreateFromPhoneProvider(body)
+		err = c.accountService.CreateFromPhoneProvider(body)
 		if err != nil {
 			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
 			return
@@ -64,7 +64,7 @@ func (c *AuthController) CreateFromGoogleProvider() {
 			return
 		}
 
-		result, err := (*c.accountService).CreateFromGoogleProvider(body)
+		result, err := c.accountService.CreateFromGoogleProvider(body)
 		if err != nil {
 			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
 			return
@@ -85,7 +85,7 @@ func (c *AuthController) CreateFromFacebookProvider() {
 			return
 		}
 
-		result, err := (*c.accountService).CreateFromFacebookProvider(body)
+		result, err := c.accountService.CreateFromFacebookProvider(body)
 		if err != nil {
 			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
 			return
@@ -106,7 +106,7 @@ func (c *AuthController) ExchangeCode() {
 			return
 		}
 
-		result, err := (*c.accountService).ExchangeCode(body)
+		result, err := c.accountService.ExchangeCode(body)
 		if err != nil {
 			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
 			return
@@ -127,7 +127,7 @@ func (c *AuthController) RefreshToken() {
 			return
 		}
 
-		result, err := (*c.accountService).RefreshToken(body)
+		result, err := c.accountService.RefreshToken(body)
 		if err != nil {
 			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
 			return

@@ -94,9 +94,9 @@ type AccountRepository interface {
 // ----------------------------
 
 type AuthOutput struct {
-	RefreshToken string
-	AccessToken  string
-	ExpiresAt    time.Time
+	RefreshToken string    `json:"refreshToken,omitempty"`
+	AccessToken  string    `json:"accessToken"`
+	ExpiresAt    time.Time `json:"expiresAt"`
 }
 
 type CreateAccountFromEmailInput struct {
