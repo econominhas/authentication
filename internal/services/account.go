@@ -15,6 +15,7 @@ type AccountService struct {
 
 	GoogleAdapter   adapters.SignInProviderAdapter
 	FacebookAdapter adapters.SignInProviderAdapter
+	DiscordAdapter  adapters.SignInProviderAdapter
 	TokenAdapter    adapters.TokenAdapter
 	EmailAdapter    adapters.EmailAdapter
 	SmsAdapter      adapters.SmsAdapter
@@ -38,7 +39,7 @@ type createFromExternalProviderInput struct {
 	db *sql.Tx
 
 	providerService *adapters.SignInProviderAdapter
-	providerType    string
+	providerType    models.ProviderType
 	code            string
 	originUrl       string
 }
@@ -219,25 +220,6 @@ func (serv *AccountService) createFromExternal(i *createFromExternalProviderInpu
 	})
 }
 
-func (serv *AccountService) CreateFromGoogleProvider(i *models.CreateAccountFromExternalProviderInput) (*models.AuthOutput, *utils.HttpError) {
-	tx, err := serv.Db.Begin()
-	if err != nil {
-		return nil, &utils.HttpError{
-			Message:    "fail to create transaction",
-			StatusCode: http.StatusInternalServerError,
-		}
-	}
-
-	return serv.createFromExternal(&createFromExternalProviderInput{
-		db: tx,
-
-		providerService: &serv.GoogleAdapter,
-		providerType:    "GOOGLE",
-		code:            i.Code,
-		originUrl:       i.OriginUrl,
-	})
-}
-
 func (serv *AccountService) CreateFromFacebookProvider(i *models.CreateAccountFromExternalProviderInput) (*models.AuthOutput, *utils.HttpError) {
 	tx, err := serv.Db.Begin()
 	if err != nil {
@@ -251,7 +233,45 @@ func (serv *AccountService) CreateFromFacebookProvider(i *models.CreateAccountFr
 		db: tx,
 
 		providerService: &serv.FacebookAdapter,
-		providerType:    "FACEBOOK",
+		providerType:    models.ProviderTypeFacebookEnum,
+		code:            i.Code,
+		originUrl:       i.OriginUrl,
+	})
+}
+
+func (serv *AccountService) CreateFromGoogleProvider(i *models.CreateAccountFromExternalProviderInput) (*models.AuthOutput, *utils.HttpError) {
+	tx, err := serv.Db.Begin()
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    "fail to create transaction",
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+
+	return serv.createFromExternal(&createFromExternalProviderInput{
+		db: tx,
+
+		providerService: &serv.GoogleAdapter,
+		providerType:    models.ProviderTypeGoogleEnum,
+		code:            i.Code,
+		originUrl:       i.OriginUrl,
+	})
+}
+
+func (serv *AccountService) CreateFromDiscordProvider(i *models.CreateAccountFromExternalProviderInput) (*models.AuthOutput, *utils.HttpError) {
+	tx, err := serv.Db.Begin()
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    "fail to create transaction",
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+
+	return serv.createFromExternal(&createFromExternalProviderInput{
+		db: tx,
+
+		providerService: &serv.DiscordAdapter,
+		providerType:    models.ProviderTypeDiscordEnum,
 		code:            i.Code,
 		originUrl:       i.OriginUrl,
 	})

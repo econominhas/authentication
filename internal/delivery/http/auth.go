@@ -78,6 +78,37 @@ func (c *AuthController) CreateFromPhoneProvider() {
 	})
 }
 
+func (c *AuthController) CreateFromFacebookProvider() {
+	if os.Getenv("FF_CREATE_FROM_FACEBOOK") != "1" {
+		return
+	}
+
+	route := fmt.Sprintf("POST %s/facebook", c.prefix)
+
+	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+		body := &models.CreateAccountFromExternalProviderInput{}
+		err := json.NewDecoder(r.Body).Decode(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = c.validator.Validate(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		result, err := c.accountService.CreateFromFacebookProvider(body)
+		if err != nil {
+			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
+			return
+		}
+
+		json.NewEncoder(w).Encode(result)
+	})
+}
+
 func (c *AuthController) CreateFromGoogleProvider() {
 	if os.Getenv("FF_CREATE_FROM_GOOGLE") != "1" {
 		return
@@ -109,12 +140,12 @@ func (c *AuthController) CreateFromGoogleProvider() {
 	})
 }
 
-func (c *AuthController) CreateFromFacebookProvider() {
-	if os.Getenv("FF_CREATE_FROM_FACEBOOK") != "1" {
+func (c *AuthController) CreateFromDiscordProvider() {
+	if os.Getenv("FF_CREATE_FROM_DISCORD") != "1" {
 		return
 	}
 
-	route := fmt.Sprintf("POST %s/facebook", c.prefix)
+	route := fmt.Sprintf("POST %s/discord", c.prefix)
 
 	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
 		body := &models.CreateAccountFromExternalProviderInput{}
@@ -130,7 +161,7 @@ func (c *AuthController) CreateFromFacebookProvider() {
 			return
 		}
 
-		result, err := c.accountService.CreateFromFacebookProvider(body)
+		result, err := c.accountService.CreateFromDiscordProvider(body)
 		if err != nil {
 			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
 			return
@@ -211,8 +242,9 @@ func (dlv *HttpDelivery) AuthController() {
 
 	controller.CreateFromEmailProvider()
 	controller.CreateFromPhoneProvider()
-	controller.CreateFromGoogleProvider()
 	controller.CreateFromFacebookProvider()
+	controller.CreateFromGoogleProvider()
+	controller.CreateFromDiscordProvider()
 	controller.ExchangeCode()
 	controller.RefreshToken()
 }

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"os"
 
+	"github.com/econominhas/authentication/internal/adapters/implementations/discord"
 	"github.com/econominhas/authentication/internal/adapters/implementations/facebook"
 	"github.com/econominhas/authentication/internal/adapters/implementations/google"
 	"github.com/econominhas/authentication/internal/adapters/implementations/paseto"
@@ -64,6 +65,7 @@ func main() {
 
 	googleAdapter := google.NewGoogle(logger)
 	facebookAdapter := facebook.NewFacebook(logger)
+	discordAdapter := discord.NewDiscord(logger)
 	pasetoAdapter := paseto.NewPaseto(logger)
 	secretAdapter := secret.NewSecret(logger)
 	sesAdapter := ses.NewSes(logger)
@@ -113,6 +115,7 @@ func main() {
 
 		GoogleAdapter:   googleAdapter,
 		FacebookAdapter: facebookAdapter,
+		DiscordAdapter:  discordAdapter,
 		TokenAdapter:    pasetoAdapter,
 		EmailAdapter:    sesAdapter,
 		SmsAdapter:      snsAdapter,
