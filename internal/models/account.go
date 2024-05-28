@@ -9,13 +9,27 @@ import (
 
 // ----------------------------
 //
+//      Enums
+//
+// ----------------------------
+
+type ProviderType string
+
+const (
+	ProviderTypeGoogleEnum   ProviderType = "GOOGLE"
+	ProviderTypeFacebookEnum ProviderType = "FACEBOOK"
+	ProviderTypeDiscordEnum  ProviderType = "DISCORD"
+)
+
+// ----------------------------
+//
 //      Repository
 //
 // ----------------------------
 
 type CreateAccountSignInProvider struct {
 	Id           string
-	Type         string
+	Type         ProviderType
 	AccessToken  string
 	RefreshToken *string
 	ExpiresAt    time.Time
@@ -66,14 +80,14 @@ type GetManyAccountsByProviderInput struct {
 	Db *sql.Tx
 
 	ProviderId   string
-	ProviderType string
+	ProviderType ProviderType
 	Email        string
 }
 
 type GetManyAccountsByProviderOutput struct {
 	AccountId    string
 	ProviderId   string
-	ProviderType string
+	ProviderType ProviderType
 	Email        string
 }
 
@@ -135,6 +149,8 @@ type AccountService interface {
 	CreateFromGoogleProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, *utils.HttpError)
 
 	CreateFromFacebookProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, *utils.HttpError)
+
+	CreateFromDiscordProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, *utils.HttpError)
 
 	ExchangeCode(i *ExchangeAccountCodeInput) (*AuthOutput, *utils.HttpError)
 

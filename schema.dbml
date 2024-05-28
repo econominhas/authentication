@@ -93,6 +93,7 @@ Table auth.phone_numbers as pn {
 Enum SignInProviderEnum {
   FACEBOOK
   GOOGLE
+  DISCORD
 }
 
 //// ------------------------------------------------------
