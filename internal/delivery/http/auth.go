@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/econominhas/authentication/internal/delivery"
 	"github.com/econominhas/authentication/internal/models"
@@ -20,6 +21,10 @@ type AuthController struct {
 }
 
 func (c *AuthController) CreateFromEmailProvider() {
+	if os.Getenv("FF_CREATE_FROM_EMAIL") != "1" {
+		return
+	}
+
 	route := fmt.Sprintf("POST %s/email", c.prefix)
 
 	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +50,10 @@ func (c *AuthController) CreateFromEmailProvider() {
 }
 
 func (c *AuthController) CreateFromPhoneProvider() {
+	if os.Getenv("FF_CREATE_FROM_PHONE") != "1" {
+		return
+	}
+
 	route := fmt.Sprintf("POST %s/phone", c.prefix)
 
 	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +79,10 @@ func (c *AuthController) CreateFromPhoneProvider() {
 }
 
 func (c *AuthController) CreateFromGoogleProvider() {
+	if os.Getenv("FF_CREATE_FROM_GOOGLE") != "1" {
+		return
+	}
+
 	route := fmt.Sprintf("POST %s/google", c.prefix)
 
 	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +110,10 @@ func (c *AuthController) CreateFromGoogleProvider() {
 }
 
 func (c *AuthController) CreateFromFacebookProvider() {
+	if os.Getenv("FF_CREATE_FROM_FACEBOOK") != "1" {
+		return
+	}
+
 	route := fmt.Sprintf("POST %s/facebook", c.prefix)
 
 	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
@@ -124,6 +141,13 @@ func (c *AuthController) CreateFromFacebookProvider() {
 }
 
 func (c *AuthController) ExchangeCode() {
+	// If none of the passwordless methods are allowed,
+	// then this feature should not be allowed either
+	if os.Getenv("FF_CREATE_FROM_EMAIL") != "1" &&
+		os.Getenv("FF_CREATE_FROM_PHONE") != "1" {
+		return
+	}
+
 	route := fmt.Sprintf("POST %s/code", c.prefix)
 
 	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
