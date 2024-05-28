@@ -30,7 +30,7 @@ type CreateRefreshTokenInput struct {
 }
 
 type CreateRefreshTokenOutput struct {
-	RefreshToken string
+	RefreshToken string `json:"refreshToken"`
 }
 
 type GetRefreshTokenInput struct {
