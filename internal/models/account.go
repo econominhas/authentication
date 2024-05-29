@@ -125,30 +125,30 @@ type AuthOutput struct {
 }
 
 type CreateAccountFromEmailInput struct {
-	Email string `validate:"required,email"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type CreateAccountFromPhoneInput struct {
-	Phone CreateAccountPhone `validate:"required,numeric"`
+	Phone CreateAccountPhone `json:"phone" validate:"required,numeric"`
 }
 
 type CreateAccountFromExternalProviderInput struct {
-	Code      string `validate:"required,alphanum"`
-	OriginUrl string `validate:"url"`
+	Code      string `json:"code" validate:"required,alphanum"`
+	OriginUrl string `json:"originUrl" validate:"url"`
 }
 
 type PartialCreateFromDiscordIdInput struct {
-	Id string `validate:"required,alphanum"`
+	Id string `json:"id" validate:"required,alphanum"`
 }
 
 type ExchangeAccountCodeInput struct {
-	AccountId string `validate:"required,ulid"`
-	Code      string `validate:"required,alphanum"`
+	AccountId string `json:"accountId" validate:"required,ulid"`
+	Code      string `json:"code" validate:"required,alphanum"`
 }
 
 type RefreshAccountTokenInput struct {
-	AccountId    string `validate:"required,ulid"`
-	RefreshToken string `validate:"required,alphanum"`
+	AccountId    string `json:"accountId" validate:"required,ulid"`
+	RefreshToken string `json:"refreshToken" validate:"required,alphanum"`
 }
 
 type RefreshAccountTokenOutput struct {
