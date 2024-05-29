@@ -30,9 +30,13 @@ type AccountService struct {
 type genAuthOutputInput struct {
 	db *sql.Tx
 
-	accountId     string
+	accountId string
+	// Tells if it's the user's first access
 	isFirstAccess bool
-	refresh       bool
+	// Tells if should generate and return refresh token
+	refresh bool
+	// Tells if the account is complete or partial
+	isComplete bool
 }
 
 type createFromExternalProviderInput struct {
@@ -66,7 +70,8 @@ func (serv *AccountService) genAuthOutput(i *genAuthOutputInput) (*models.AuthOu
 	defer wg.Done()
 	go func() {
 		accessToken, err = serv.TokenAdapter.GenAccess(&adapters.GenAccessInput{
-			AccountId: i.accountId,
+			AccountId:  i.accountId,
+			IsComplete: i.isComplete,
 		})
 	}()
 
@@ -147,8 +152,8 @@ func (serv *AccountService) createFromExternal(i *createFromExternalProviderInpu
 	var isFirstAccess bool
 
 	if len(relatedAccounts) > 0 {
-		sameEmail := new(models.GetManyAccountsByProviderOutput)
-		sameProvider := new(models.GetManyAccountsByProviderOutput)
+		var sameEmail *models.GetManyAccountsByProviderOutput = nil
+		var sameProvider *models.GetManyAccountsByProviderOutput = nil
 		for _, v := range relatedAccounts {
 			if v.Email == providerData.Email {
 				sameEmail = &v
@@ -186,6 +191,34 @@ func (serv *AccountService) createFromExternal(i *createFromExternalProviderInpu
 				StatusCode: http.StatusInternalServerError,
 			}
 		}
+
+		/*
+		 * Updates the account because it can be partially created
+		 * or the user can add a new email, different sign in provider,
+		 * so we need to add the extra missing information to make
+		 * it complete
+		 */
+		err := serv.AccountRepository.Update(&models.UpdateAccountInput{
+			Db: i.db,
+
+			Email: providerData.Email,
+			SignInProviders: []models.CreateAccountSignInProvider{
+				{
+					Id:           providerData.Id,
+					Type:         i.providerType,
+					AccessToken:  exchangeCode.AccessToken,
+					RefreshToken: &exchangeCode.RefreshToken,
+					ExpiresAt:    exchangeCode.ExpiresAt,
+				},
+			},
+		})
+		if err != nil {
+			i.db.Rollback()
+			return nil, &utils.HttpError{
+				Message:    "fail to update account",
+				StatusCode: http.StatusInternalServerError,
+			}
+		}
 	} else {
 		result, err := serv.AccountRepository.Create(&models.CreateAccountInput{
 			Db: i.db,
@@ -217,6 +250,7 @@ func (serv *AccountService) createFromExternal(i *createFromExternalProviderInpu
 		accountId:     accountId,
 		isFirstAccess: isFirstAccess,
 		refresh:       true,
+		isComplete:    true,
 	})
 }
 
@@ -383,7 +417,7 @@ func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromP
 		createdAccount, err := serv.AccountRepository.Create(&models.CreateAccountInput{
 			Db: tx,
 
-			Phone: i.Phone,
+			Phone: &i.Phone,
 		})
 		if err != nil {
 			tx.Rollback()
@@ -430,6 +464,83 @@ func (serv *AccountService) CreateFromPhoneProvider(i *models.CreateAccountFromP
 	return nil
 }
 
+func (serv *AccountService) PartialCreateFromDiscordId(i *models.PartialCreateFromDiscordIdInput) (*models.AuthOutput, *utils.HttpError) {
+	tx, err := serv.Db.Begin()
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    "fail to create transaction",
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+
+	relatedAccounts, err := serv.AccountRepository.GetManyByProvider(&models.GetManyAccountsByProviderInput{
+		Db: tx,
+
+		ProviderId:   i.Id,
+		ProviderType: models.ProviderTypeDiscordEnum,
+	})
+	if err != nil {
+		tx.Rollback()
+		return nil, &utils.HttpError{
+			Message:    "fail to get related accounts",
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+
+	var accountId string
+	var isFirstAccess bool
+
+	if len(relatedAccounts) > 0 {
+		var sameProvider *models.GetManyAccountsByProviderOutput = nil
+		for _, v := range relatedAccounts {
+			if v.ProviderId == i.Id && v.ProviderType == models.ProviderTypeDiscordEnum {
+				sameProvider = &v
+				break
+			}
+		}
+
+		if sameProvider != nil {
+			accountId = sameProvider.AccountId
+		}
+
+		if accountId == "" {
+			tx.Rollback()
+			return nil, &utils.HttpError{
+				Message:    "fail to relate account",
+				StatusCode: http.StatusInternalServerError,
+			}
+		}
+	} else {
+		result, err := serv.AccountRepository.Create(&models.CreateAccountInput{
+			Db: tx,
+
+			SignInProviders: []models.CreateAccountSignInProvider{
+				{
+					Id:   i.Id,
+					Type: models.ProviderTypeDiscordEnum,
+				},
+			},
+		})
+		if err != nil {
+			tx.Rollback()
+			return nil, &utils.HttpError{
+				Message:    "fail to create account",
+				StatusCode: http.StatusInternalServerError,
+			}
+		}
+
+		accountId = result.Id
+		isFirstAccess = true
+	}
+
+	return serv.genAuthOutput(&genAuthOutputInput{
+		accountId:     accountId,
+		isFirstAccess: isFirstAccess,
+		refresh:       false,
+		isComplete:    false,
+	})
+}
+
 func (serv *AccountService) ExchangeCode(i *models.ExchangeAccountCodeInput) (*models.AuthOutput, *utils.HttpError) {
 	tx, err := serv.Db.Begin()
 	if err != nil {
@@ -469,6 +580,7 @@ func (serv *AccountService) ExchangeCode(i *models.ExchangeAccountCodeInput) (*m
 		accountId:     i.AccountId,
 		isFirstAccess: magicLinkCode.IsFirstAccess,
 		refresh:       true,
+		isComplete:    true,
 	})
 }
 

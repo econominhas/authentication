@@ -83,6 +83,88 @@ func (rep *AccountRepository) Create(i *models.CreateAccountInput) (*models.Crea
 	}, nil
 }
 
+func (rep *AccountRepository) Update(i *models.UpdateAccountInput) error {
+	if i.AccountId == "" {
+		return errors.New("accountId is required")
+	}
+	if (i.Phone.CountryCode != "" && i.Phone.Number == "") ||
+		(i.Phone.CountryCode == "" && i.Phone.Number != "") {
+		return errors.New("both phone number and country code are required")
+	}
+
+	if i.Email != "" {
+		_, err := i.Db.Exec(
+			`
+			INSERT INTO auth.email_addresses (
+				account_id,
+				email_address,
+				verified_at
+			)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (account_id, email) DO NOTHING
+			`,
+			i.AccountId,
+			i.Email,
+			time.Now(),
+		)
+		if err != nil {
+			return errors.New("fail to create email contact")
+		}
+	}
+
+	if i.Phone.Number != "" {
+		_, err := i.Db.Exec(
+			`
+			INSERT INTO auth.phone_numbers (
+				account_id,
+				country_code,
+				phone_number,
+				verified_at
+			)
+			VALUES ($1, $2, $3, $4)
+			ON CONFLICT (account_id, country_code, phone_number) DO NOTHING
+			`,
+			i.AccountId,
+			i.Phone.CountryCode,
+			i.Phone.Number,
+			time.Now(),
+		)
+		if err != nil {
+			return errors.New("fail to create phone contact")
+		}
+	}
+
+	if len(i.SignInProviders) > 0 {
+		for _, signInProvider := range i.SignInProviders {
+			_, err := i.Db.Exec(
+				`
+				INSERT INTO auth.sign_in_providers (
+					account_id,
+					provider,
+					provider_id,
+					access_token,
+					refresh_token,
+					expires_at
+				)
+				VALUES ($1, $2, $3, $4, $5, $6)
+				ON CONFLICT (account_id, provider, provider_id) DO NOTHING
+				`,
+				i.AccountId,
+				signInProvider.Type,
+				signInProvider.Id,
+				signInProvider.AccessToken,
+				&signInProvider.RefreshToken,
+				signInProvider.ExpiresAt,
+			)
+			if err != nil {
+				return errors.New("fail to create sign in provider")
+			}
+		}
+	}
+
+	return nil
+}
+
 func (rep *AccountRepository) GetManyByProvider(i *models.GetManyAccountsByProviderInput) ([]models.GetManyAccountsByProviderOutput, error) {
 	rows, err := i.Db.Query(
 		`

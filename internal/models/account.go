@@ -44,7 +44,16 @@ type CreateAccountInput struct {
 	Db *sql.Tx
 
 	Email           string
-	Phone           CreateAccountPhone
+	Phone           *CreateAccountPhone
+	SignInProviders []CreateAccountSignInProvider
+}
+
+type UpdateAccountInput struct {
+	Db *sql.Tx
+
+	AccountId       string
+	Email           string
+	Phone           *CreateAccountPhone
 	SignInProviders []CreateAccountSignInProvider
 }
 
@@ -94,6 +103,8 @@ type GetManyAccountsByProviderOutput struct {
 type AccountRepository interface {
 	Create(i *CreateAccountInput) (*CreateAccountOutput, error)
 
+	Update(i *UpdateAccountInput) error
+
 	GetManyByProvider(i *GetManyAccountsByProviderInput) ([]GetManyAccountsByProviderOutput, error)
 
 	GetByEmail(i *GetAccountByEmailInput) (*GetAccountByEmailOutput, error)
@@ -126,6 +137,10 @@ type CreateAccountFromExternalProviderInput struct {
 	OriginUrl string `validate:"url"`
 }
 
+type PartialCreateFromDiscordIdInput struct {
+	Id string `validate:"required,alphanum"`
+}
+
 type ExchangeAccountCodeInput struct {
 	AccountId string `validate:"required,ulid"`
 	Code      string `validate:"required,alphanum"`
@@ -142,17 +157,17 @@ type RefreshAccountTokenOutput struct {
 }
 
 type AccountService interface {
+	// Create complete account
 	CreateFromEmailProvider(i *CreateAccountFromEmailInput) *utils.HttpError
-
 	CreateFromPhoneProvider(i *CreateAccountFromPhoneInput) *utils.HttpError
-
 	CreateFromGoogleProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, *utils.HttpError)
-
 	CreateFromFacebookProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, *utils.HttpError)
-
 	CreateFromDiscordProvider(i *CreateAccountFromExternalProviderInput) (*AuthOutput, *utils.HttpError)
 
-	ExchangeCode(i *ExchangeAccountCodeInput) (*AuthOutput, *utils.HttpError)
+	// Create partial account
+	PartialCreateFromDiscordId(i *PartialCreateFromDiscordIdInput) (*AuthOutput, *utils.HttpError)
 
+	// Extra
+	ExchangeCode(i *ExchangeAccountCodeInput) (*AuthOutput, *utils.HttpError)
 	RefreshToken(i *RefreshAccountTokenInput) (*RefreshAccountTokenOutput, *utils.HttpError)
 }
