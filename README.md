@@ -1,4 +1,4 @@
-# Econominhas - Authentication
+# Authentication
 
 Authentication microservice, responsible for controlling users account creation and sign ins.
 
