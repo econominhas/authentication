@@ -3,7 +3,8 @@ package adapters
 import "time"
 
 type GenAccessInput struct {
-	AccountId string
+	AccountId  string
+	IsComplete bool
 }
 
 type GenAccessOutput struct {

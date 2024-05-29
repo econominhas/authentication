@@ -171,6 +171,37 @@ func (c *AuthController) CreateFromDiscordProvider() {
 	})
 }
 
+func (c *AuthController) PartialCreateFromDiscordId() {
+	if os.Getenv("FF_PARTIAL_CREATE_FROM_DISCORD") != "1" {
+		return
+	}
+
+	route := fmt.Sprintf("POST %s/partial/discord", c.prefix)
+
+	c.router.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+		body := &models.PartialCreateFromDiscordIdInput{}
+		err := json.NewDecoder(r.Body).Decode(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = c.validator.Validate(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		result, err := c.accountService.PartialCreateFromDiscordId(body)
+		if err != nil {
+			http.Error(w, err.Error(), err.(*utils.HttpError).HttpStatusCode())
+			return
+		}
+
+		json.NewEncoder(w).Encode(result)
+	})
+}
+
 func (c *AuthController) ExchangeCode() {
 	// If none of the passwordless methods are allowed,
 	// then this feature should not be allowed either
@@ -245,6 +276,7 @@ func (dlv *HttpDelivery) AuthController() {
 	controller.CreateFromFacebookProvider()
 	controller.CreateFromGoogleProvider()
 	controller.CreateFromDiscordProvider()
+	controller.PartialCreateFromDiscordId()
 	controller.ExchangeCode()
 	controller.RefreshToken()
 }

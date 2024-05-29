@@ -29,6 +29,7 @@ func (adp *PasetoAdapter) GenAccess(i *adapters.GenAccessInput) (*adapters.GenAc
 	token.SetIssuedAt(time.Now())
 	token.SetNotBefore(time.Now())
 	token.SetExpiration(expiresAt)
+	token.Set("complete", i.IsComplete)
 
 	accessToken := token.V4Sign(secretKey, nil)
 
